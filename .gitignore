@@ -149,3 +149,8 @@ prisma/*.db-journal
 
 # Uploads
 /public/uploads
+
+# Wrangler
+.wrangler/
+.dev.vars
+wrangler.toml.local
