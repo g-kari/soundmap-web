@@ -102,6 +102,32 @@ npm run deploy
    - Build output directory: `build/client`
 5. 環境変数を設定（D1、KV、R2のバインディング）
 
+### 7. カスタムドメインの設定
+
+プロジェクトのカスタムドメイン: `soundmap.0g0.xyz`
+
+#### Cloudflare Pagesでカスタムドメインを追加
+
+1. Cloudflare Dashboard → Pages → プロジェクトを選択
+2. **Custom domains** タブを開く
+3. **Set up a custom domain** をクリック
+4. ドメイン `soundmap.0g0.xyz` を入力
+5. DNSレコードを確認（自動的に設定されます）
+
+#### DNSレコード（参考）
+
+Cloudflareが自動的に以下のレコードを設定します：
+
+- **CNAME** レコード: `soundmap.0g0.xyz` → `your-project.pages.dev`
+
+または、手動で設定する場合：
+```
+Type: CNAME
+Name: soundmap
+Content: your-soundmap-project.pages.dev
+Proxy status: Proxied (オレンジクラウド)
+```
+
 ## プロジェクト構造
 
 ```
