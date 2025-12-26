@@ -5,35 +5,200 @@
   box-sizing: border-box;
 }
 
+/* ========================================
+   Material Design 3 デザイントークン
+   ======================================== */
+
 :root {
-  --primary-color: #4f46e5;
-  --primary-hover: #4338ca;
-  --secondary-color: #6b7280;
-  --background: #f9fafb;
-  --surface: #ffffff;
-  --text-primary: #111827;
-  --text-secondary: #6b7280;
-  --border-color: #e5e7eb;
-  --error-color: #ef4444;
-  --success-color: #10b981;
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  /* カラーパレット - Material Design 3 */
+  /* Primary - ブランドカラー #ffffef */
+  --md-primary: #ffffef;
+  --md-on-primary: #1a1a1a;
+  --md-primary-container: #fff8d6;
+  --md-on-primary-container: #2d2d00;
+
+  /* Secondary */
+  --md-secondary: #5f5e54;
+  --md-on-secondary: #ffffff;
+  --md-secondary-container: #e5e3d6;
+  --md-on-secondary-container: #1c1c14;
+
+  /* Tertiary */
+  --md-tertiary: #3f6654;
+  --md-on-tertiary: #ffffff;
+  --md-tertiary-container: #c1ecd5;
+  --md-on-tertiary-container: #002114;
+
+  /* Error */
+  --md-error: #ba1a1a;
+  --md-on-error: #ffffff;
+  --md-error-container: #ffdad6;
+  --md-on-error-container: #410002;
+
+  /* Surface & Background */
+  --md-surface: #fdfcf5;
+  --md-on-surface: #1c1c17;
+  --md-surface-variant: #e7e3d4;
+  --md-on-surface-variant: #49473a;
+  --md-background: #fdfcf5;
+  --md-on-background: #1c1c17;
+
+  /* Outline */
+  --md-outline: #7a7768;
+  --md-outline-variant: #cbc7b9;
+
+  /* Shadow & Scrim */
+  --md-shadow: #000000;
+  --md-scrim: #000000;
+
+  /* Surface Tint (Material Design 3 の elevation 表現) */
+  --md-surface-tint: var(--md-primary);
+
+  /* Success (Material Design標準外だが便利なので追加) */
+  --md-success: #198754;
+  --md-on-success: #ffffff;
+
+  /* タイポグラフィ - Material Design 3 Type Scale */
+  --md-font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif, "Noto Sans JP", "Yu Gothic", YuGothic;
+
+  /* Display */
+  --md-display-large-size: 57px;
+  --md-display-large-line-height: 64px;
+  --md-display-large-weight: 400;
+
+  --md-display-medium-size: 45px;
+  --md-display-medium-line-height: 52px;
+  --md-display-medium-weight: 400;
+
+  --md-display-small-size: 36px;
+  --md-display-small-line-height: 44px;
+  --md-display-small-weight: 400;
+
+  /* Headline */
+  --md-headline-large-size: 32px;
+  --md-headline-large-line-height: 40px;
+  --md-headline-large-weight: 400;
+
+  --md-headline-medium-size: 28px;
+  --md-headline-medium-line-height: 36px;
+  --md-headline-medium-weight: 400;
+
+  --md-headline-small-size: 24px;
+  --md-headline-small-line-height: 32px;
+  --md-headline-small-weight: 400;
+
+  /* Title */
+  --md-title-large-size: 22px;
+  --md-title-large-line-height: 28px;
+  --md-title-large-weight: 400;
+
+  --md-title-medium-size: 16px;
+  --md-title-medium-line-height: 24px;
+  --md-title-medium-weight: 500;
+
+  --md-title-small-size: 14px;
+  --md-title-small-line-height: 20px;
+  --md-title-small-weight: 500;
+
+  /* Body */
+  --md-body-large-size: 16px;
+  --md-body-large-line-height: 24px;
+  --md-body-large-weight: 400;
+
+  --md-body-medium-size: 14px;
+  --md-body-medium-line-height: 20px;
+  --md-body-medium-weight: 400;
+
+  --md-body-small-size: 12px;
+  --md-body-small-line-height: 16px;
+  --md-body-small-weight: 400;
+
+  /* Label */
+  --md-label-large-size: 14px;
+  --md-label-large-line-height: 20px;
+  --md-label-large-weight: 500;
+
+  --md-label-medium-size: 12px;
+  --md-label-medium-line-height: 16px;
+  --md-label-medium-weight: 500;
+
+  --md-label-small-size: 11px;
+  --md-label-small-line-height: 16px;
+  --md-label-small-weight: 500;
+
+  /* Shape - 角丸4px（ユーザー指定） */
+  --md-shape-corner-none: 0px;
+  --md-shape-corner-extra-small: 2px;
+  --md-shape-corner-small: 4px;
+  --md-shape-corner-medium: 8px;
+  --md-shape-corner-large: 12px;
+  --md-shape-corner-extra-large: 16px;
+  --md-shape-corner-full: 9999px;
+
+  /* Spacing - Material Design 4dpグリッドシステム */
+  --md-spacing-0: 0px;
+  --md-spacing-1: 4px;
+  --md-spacing-2: 8px;
+  --md-spacing-3: 12px;
+  --md-spacing-4: 16px;
+  --md-spacing-5: 20px;
+  --md-spacing-6: 24px;
+  --md-spacing-7: 28px;
+  --md-spacing-8: 32px;
+  --md-spacing-10: 40px;
+  --md-spacing-12: 48px;
+  --md-spacing-16: 64px;
+
+  /* Elevation - Material Design 3 (フラットデザインなので基本的に使用しない) */
+  --md-elevation-0: none;
+  --md-elevation-1: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --md-elevation-2: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --md-elevation-3: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+  /* トランジション */
+  --md-transition-duration-short: 150ms;
+  --md-transition-duration-medium: 250ms;
+  --md-transition-duration-long: 400ms;
+  --md-transition-easing-standard: cubic-bezier(0.4, 0.0, 0.2, 1);
+  --md-transition-easing-emphasized: cubic-bezier(0.2, 0.0, 0, 1);
+
+  /* 後方互換性のためのエイリアス */
+  --primary-color: var(--md-primary);
+  --primary-hover: var(--md-primary-container);
+  --secondary-color: var(--md-secondary);
+  --background: var(--md-background);
+  --surface: var(--md-surface);
+  --text-primary: var(--md-on-surface);
+  --text-secondary: var(--md-on-surface-variant);
+  --border-color: var(--md-outline-variant);
+  --error-color: var(--md-error);
+  --success-color: var(--md-success);
+  --shadow-sm: var(--md-elevation-1);
+  --shadow: var(--md-elevation-2);
+  --shadow-md: var(--md-elevation-3);
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background-color: var(--background);
-  color: var(--text-primary);
-  line-height: 1.6;
+  font-family: var(--md-font-family);
+  font-size: var(--md-body-large-size);
+  line-height: var(--md-body-large-line-height);
+  font-weight: var(--md-body-large-weight);
+  background-color: var(--md-background);
+  color: var(--md-on-background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* ナビゲーション */
+/* ========================================
+   ナビゲーション - Material Design 3
+   ======================================== */
+
 .navbar {
-  background-color: var(--surface);
-  border-bottom: 1px solid var(--border-color);
-  padding: 1rem 0;
-  box-shadow: var(--shadow-sm);
+  background-color: var(--md-surface);
+  border-bottom: 1px solid var(--md-outline-variant);
+  padding: var(--md-spacing-4) 0;
+  /* フラットデザイン - 影なし */
+  box-shadow: none;
 }
 
 .navbar .container {
@@ -42,35 +207,44 @@ body {
   align-items: center;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 var(--md-spacing-4);
 }
 
 .navbar-logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--primary-color);
+  /* Title Large Typography */
+  font-size: var(--md-title-large-size);
+  line-height: var(--md-title-large-line-height);
+  font-weight: var(--md-title-large-weight);
+  color: var(--md-primary);
   text-decoration: none;
 }
 
 .navbar-menu {
   display: flex;
-  gap: 1.5rem;
+  gap: var(--md-spacing-2);
   align-items: center;
 }
 
 .navbar-link {
-  color: var(--text-secondary);
+  /* Label Large Typography */
+  font-size: var(--md-label-large-size);
+  line-height: var(--md-label-large-line-height);
+  font-weight: var(--md-label-large-weight);
+
+  color: var(--md-on-surface-variant);
   text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
+  padding: var(--md-spacing-2) var(--md-spacing-3);
+  border-radius: var(--md-shape-corner-small);
+  transition: background-color var(--md-transition-duration-short) var(--md-transition-easing-standard),
+              color var(--md-transition-duration-short) var(--md-transition-easing-standard);
 }
 
 .navbar-link:hover {
-  color: var(--primary-color);
+  color: var(--md-on-surface);
+  background-color: rgba(0, 0, 0, 0.04);
 }
 
 /* コンテナ */
@@ -84,82 +258,177 @@ body {
   min-height: calc(100vh - 80px);
 }
 
-/* ヒーローセクション */
+/* ========================================
+   ヒーローセクション - Material Design 3
+   ======================================== */
+
 .hero {
   text-align: center;
-  padding: 4rem 0;
+  padding: var(--md-spacing-16) 0;
 }
 
 .hero-title {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  color: var(--text-primary);
+  /* Display Medium Typography */
+  font-size: var(--md-display-medium-size);
+  line-height: var(--md-display-medium-line-height);
+  font-weight: var(--md-display-medium-weight);
+  margin-bottom: var(--md-spacing-4);
+  color: var(--md-on-background);
 }
 
 .hero-subtitle {
-  font-size: 1.5rem;
-  color: var(--text-secondary);
-  margin-bottom: 2rem;
+  /* Headline Small Typography */
+  font-size: var(--md-headline-small-size);
+  line-height: var(--md-headline-small-line-height);
+  font-weight: var(--md-headline-small-weight);
+  color: var(--md-on-surface-variant);
+  margin-bottom: var(--md-spacing-8);
 }
 
 .hero-description {
   max-width: 600px;
-  margin: 0 auto 2rem;
-  color: var(--text-secondary);
+  margin: 0 auto var(--md-spacing-8);
+  color: var(--md-on-surface-variant);
+  /* Body Large Typography */
+  font-size: var(--md-body-large-size);
+  line-height: var(--md-body-large-line-height);
 }
 
 .hero-actions {
   display: flex;
-  gap: 1rem;
+  gap: var(--md-spacing-4);
   justify-content: center;
   flex-wrap: wrap;
 }
 
-/* ボタン */
+/* ========================================
+   ボタン - Material Design 3
+   ======================================== */
+
+/* 基本ボタンスタイル */
 .button {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  font-size: 1rem;
+  /* Material Design Button Typography */
+  font-family: var(--md-font-family);
+  font-size: var(--md-label-large-size);
+  line-height: var(--md-label-large-line-height);
+  font-weight: var(--md-label-large-weight);
+  letter-spacing: 0.1px;
+
+  /* Spacing & Shape */
+  padding: var(--md-spacing-2) var(--md-spacing-6);
+  min-height: 40px;
+  border-radius: var(--md-shape-corner-small); /* 4px */
+
+  /* Layout */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--md-spacing-2);
+
+  /* Interaction */
   cursor: pointer;
-  transition: all 0.2s;
-  text-decoration: none;
-  display: inline-block;
   border: none;
+  text-decoration: none;
+  user-select: none;
+
+  /* Transition - Material Design標準イージング */
+  transition: background-color var(--md-transition-duration-short) var(--md-transition-easing-standard),
+              color var(--md-transition-duration-short) var(--md-transition-easing-standard),
+              border-color var(--md-transition-duration-short) var(--md-transition-easing-standard);
+
+  /* フラットデザイン - 影なし */
+  box-shadow: none;
 }
 
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+/* Filled Button (Primary) - Material Design 3 */
 .button-primary {
-  background-color: var(--primary-color);
-  color: white;
+  background-color: var(--md-primary);
+  color: var(--md-on-primary);
 }
 
-.button-primary:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+.button-primary:hover:not(:disabled) {
+  background-color: var(--md-primary-container);
+  /* フラットデザイン - 影なし、transformなし */
 }
 
+.button-primary:active:not(:disabled) {
+  background-color: var(--md-primary-container);
+  opacity: 0.9;
+}
+
+/* Outlined Button (Secondary) - Material Design 3 */
 .button-secondary {
-  background-color: var(--surface);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  background-color: transparent;
+  color: var(--md-primary);
+  border: 1px solid var(--md-outline);
 }
 
-.button-secondary:hover {
-  background-color: var(--background);
+.button-secondary:hover:not(:disabled) {
+  background-color: rgba(255, 255, 239, 0.08); /* md-primary with 8% opacity */
+  border-color: var(--md-primary);
 }
 
+.button-secondary:active:not(:disabled) {
+  background-color: rgba(255, 255, 239, 0.12);
+}
+
+/* Text Button - Material Design 3 */
+.button-text {
+  background-color: transparent;
+  color: var(--md-primary);
+  border: none;
+  padding: var(--md-spacing-2) var(--md-spacing-3);
+}
+
+.button-text:hover:not(:disabled) {
+  background-color: rgba(255, 255, 239, 0.08);
+}
+
+.button-text:active:not(:disabled) {
+  background-color: rgba(255, 255, 239, 0.12);
+}
+
+/* Tonal Button - Material Design 3 */
+.button-tonal {
+  background-color: var(--md-secondary-container);
+  color: var(--md-on-secondary-container);
+}
+
+.button-tonal:hover:not(:disabled) {
+  background-color: var(--md-secondary-container);
+  opacity: 0.92;
+}
+
+.button-tonal:active:not(:disabled) {
+  opacity: 0.88;
+}
+
+/* Liked Button (Error色を使用) */
 .button-liked {
-  background-color: #fee2e2;
-  color: #ef4444;
-  border: 1px solid #fecaca;
+  background-color: var(--md-error-container);
+  color: var(--md-on-error-container);
+  border: 1px solid var(--md-error);
 }
 
+.button-liked:hover:not(:disabled) {
+  background-color: var(--md-error-container);
+  opacity: 0.92;
+}
+
+/* Full Width Button */
 .button-full {
   width: 100%;
 }
 
-/* 認証フォーム */
+/* ========================================
+   認証フォーム - Material Design 3
+   ======================================== */
+
 .auth-container {
   min-height: 80vh;
   display: flex;
@@ -168,120 +437,179 @@ body {
 }
 
 .auth-card {
-  background-color: var(--surface);
-  padding: 2.5rem;
-  border-radius: 1rem;
-  box-shadow: var(--shadow);
+  background-color: var(--md-surface);
+  padding: var(--md-spacing-8);
+  border-radius: var(--md-shape-corner-large);
+  /* フラットデザイン - 影なし */
+  box-shadow: none;
+  border: 1px solid var(--md-outline-variant);
   max-width: 400px;
   width: 100%;
 }
 
 .auth-title {
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
+  /* Headline Medium Typography */
+  font-size: var(--md-headline-medium-size);
+  line-height: var(--md-headline-medium-line-height);
+  font-weight: var(--md-headline-medium-weight);
+  margin-bottom: var(--md-spacing-6);
   text-align: center;
+  color: var(--md-on-surface);
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: var(--md-spacing-5);
 }
 
 .auth-footer {
   text-align: center;
-  margin-top: 1.5rem;
-  color: var(--text-secondary);
+  margin-top: var(--md-spacing-6);
+  color: var(--md-on-surface-variant);
+  /* Body Medium Typography */
+  font-size: var(--md-body-medium-size);
+  line-height: var(--md-body-medium-line-height);
 }
 
-/* フォーム */
+/* ========================================
+   フォーム - Material Design 3
+   ======================================== */
+
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--md-spacing-2);
 }
 
 .form-label {
-  font-weight: 600;
-  color: var(--text-primary);
+  /* Body Medium Typography */
+  font-size: var(--md-body-medium-size);
+  line-height: var(--md-body-medium-line-height);
+  font-weight: var(--md-body-medium-weight);
+  color: var(--md-on-surface);
 }
 
+/* Material Design 3 Outlined Text Field */
 .form-input,
 .form-textarea {
-  padding: 0.75rem;
-  border: 1px solid var(--border-color);
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  transition: border-color 0.2s;
+  /* Body Large Typography */
+  font-family: var(--md-font-family);
+  font-size: var(--md-body-large-size);
+  line-height: var(--md-body-large-line-height);
+
+  padding: var(--md-spacing-3) var(--md-spacing-4);
+  background-color: transparent;
+  color: var(--md-on-surface);
+  border: 1px solid var(--md-outline);
+  border-radius: var(--md-shape-corner-small);
+  transition: border-color var(--md-transition-duration-short) var(--md-transition-easing-standard),
+              background-color var(--md-transition-duration-short) var(--md-transition-easing-standard);
+}
+
+.form-input:hover,
+.form-textarea:hover {
+  border-color: var(--md-on-surface);
 }
 
 .form-input:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: var(--primary-color);
+  border-color: var(--md-primary);
+  border-width: 2px;
+  /* 境界線が太くなることによるレイアウトシフトを防ぐ */
+  padding: calc(var(--md-spacing-3) - 1px) calc(var(--md-spacing-4) - 1px);
 }
 
 .form-textarea {
   resize: vertical;
-  font-family: inherit;
+  min-height: 100px;
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: var(--md-spacing-4);
 }
 
-/* エラーメッセージ */
+/* ========================================
+   エラーメッセージ - Material Design 3
+   ======================================== */
+
 .error-message {
-  padding: 0.75rem;
-  background-color: #fee2e2;
-  color: var(--error-color);
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
+  padding: var(--md-spacing-3) var(--md-spacing-4);
+  background-color: var(--md-error-container);
+  color: var(--md-on-error-container);
+  border-radius: var(--md-shape-corner-small);
+  /* Body Medium Typography */
+  font-size: var(--md-body-medium-size);
+  line-height: var(--md-body-medium-line-height);
+  border: 1px solid var(--md-error);
 }
 
-/* リンク */
+/* ========================================
+   リンク - Material Design 3
+   ======================================== */
+
 .link {
-  color: var(--primary-color);
+  color: var(--md-primary);
   text-decoration: none;
-  font-weight: 600;
+  font-weight: var(--md-label-large-weight);
+  transition: color var(--md-transition-duration-short) var(--md-transition-easing-standard);
 }
 
 .link:hover {
+  color: var(--md-on-primary-container);
   text-decoration: underline;
 }
 
-/* ページタイトル */
+/* ========================================
+   ページタイトル - Material Design 3
+   ======================================== */
+
 .page-title {
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
+  /* Headline Medium Typography */
+  font-size: var(--md-headline-medium-size);
+  line-height: var(--md-headline-medium-line-height);
+  font-weight: var(--md-headline-medium-weight);
+  margin-bottom: var(--md-spacing-6);
+  color: var(--md-on-background);
 }
 
-/* 投稿フォーム */
+/* ========================================
+   投稿フォーム - Material Design 3
+   ======================================== */
+
 .post-form-container {
   max-width: 600px;
   margin: 0 auto;
 }
 
 .post-form {
-  background-color: var(--surface);
-  padding: 2rem;
-  border-radius: 1rem;
-  box-shadow: var(--shadow);
+  background-color: var(--md-surface);
+  padding: var(--md-spacing-8);
+  border-radius: var(--md-shape-corner-large);
+  /* フラットデザイン - 影なし */
+  box-shadow: none;
+  border: 1px solid var(--md-outline-variant);
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: var(--md-spacing-5);
 }
 
-/* 投稿詳細 */
+/* ========================================
+   投稿詳細 - Material Design 3
+   ======================================== */
+
 .post-detail {
   max-width: 800px;
   margin: 0 auto;
-  background-color: var(--surface);
-  padding: 2rem;
-  border-radius: 1rem;
-  box-shadow: var(--shadow);
+  background-color: var(--md-surface);
+  padding: var(--md-spacing-8);
+  border-radius: var(--md-shape-corner-large);
+  /* フラットデザイン - 影なし */
+  box-shadow: none;
+  border: 1px solid var(--md-outline-variant);
 }
 
 .post-header {
@@ -344,28 +672,40 @@ body {
 }
 
 .username {
-  font-weight: 600;
-  color: var(--text-primary);
+  font-weight: var(--md-label-large-weight);
+  color: var(--md-on-surface);
 }
 
 .post-date {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
+  /* Body Small Typography */
+  font-size: var(--md-body-small-size);
+  line-height: var(--md-body-small-line-height);
+  color: var(--md-on-surface-variant);
 }
 
 .post-title {
-  font-size: 1.75rem;
-  margin-bottom: 1rem;
+  /* Headline Small Typography */
+  font-size: var(--md-headline-small-size);
+  line-height: var(--md-headline-small-line-height);
+  font-weight: var(--md-headline-small-weight);
+  margin-bottom: var(--md-spacing-4);
+  color: var(--md-on-surface);
 }
 
 .post-description {
-  color: var(--text-secondary);
-  margin-bottom: 1rem;
+  /* Body Large Typography */
+  font-size: var(--md-body-large-size);
+  line-height: var(--md-body-large-line-height);
+  color: var(--md-on-surface-variant);
+  margin-bottom: var(--md-spacing-4);
 }
 
 .post-location {
-  color: var(--text-secondary);
-  margin-bottom: 1rem;
+  /* Body Medium Typography */
+  font-size: var(--md-body-medium-size);
+  line-height: var(--md-body-medium-line-height);
+  color: var(--md-on-surface-variant);
+  margin-bottom: var(--md-spacing-4);
 }
 
 .audio-player,
@@ -391,70 +731,92 @@ body {
   margin: 1.5rem 0;
 }
 
-/* コメントセクション */
+/* ========================================
+   コメントセクション - Material Design 3
+   ======================================== */
+
 .comments-section {
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--border-color);
+  margin-top: var(--md-spacing-8);
+  padding-top: var(--md-spacing-8);
+  border-top: 1px solid var(--md-outline-variant);
 }
 
 .section-title {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
+  /* Title Large Typography */
+  font-size: var(--md-title-large-size);
+  line-height: var(--md-title-large-line-height);
+  font-weight: var(--md-title-large-weight);
+  margin-bottom: var(--md-spacing-4);
+  color: var(--md-on-surface);
 }
 
 .comment-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: var(--md-spacing-4);
+  margin-bottom: var(--md-spacing-8);
 }
 
 .comments-list {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--md-spacing-6);
 }
 
 .comment {
-  padding: 1rem;
-  background-color: var(--background);
-  border-radius: 0.5rem;
+  padding: var(--md-spacing-4);
+  background-color: var(--md-surface-variant);
+  border-radius: var(--md-shape-corner-medium);
+  border: 1px solid var(--md-outline-variant);
 }
 
 .comment-author {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--md-spacing-2);
   text-decoration: none;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
+  color: var(--md-on-surface);
+  margin-bottom: var(--md-spacing-2);
+  /* Label Large Typography */
+  font-size: var(--md-label-large-size);
+  line-height: var(--md-label-large-line-height);
+  font-weight: var(--md-label-large-weight);
 }
 
 .comment-content {
-  margin: 0.75rem 0;
-  color: var(--text-primary);
+  margin: var(--md-spacing-3) 0;
+  color: var(--md-on-surface);
+  /* Body Medium Typography */
+  font-size: var(--md-body-medium-size);
+  line-height: var(--md-body-medium-line-height);
 }
 
 .comment-date {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
+  /* Body Small Typography */
+  font-size: var(--md-body-small-size);
+  line-height: var(--md-body-small-line-height);
+  color: var(--md-on-surface-variant);
 }
 
-/* プロフィール */
+/* ========================================
+   プロフィール - Material Design 3
+   ======================================== */
+
 .profile-container {
   max-width: 900px;
   margin: 0 auto;
 }
 
 .profile-header {
-  background-color: var(--surface);
-  padding: 2rem;
-  border-radius: 1rem;
-  box-shadow: var(--shadow);
+  background-color: var(--md-surface);
+  padding: var(--md-spacing-8);
+  border-radius: var(--md-shape-corner-large);
+  /* フラットデザイン - 影なし */
+  box-shadow: none;
+  border: 1px solid var(--md-outline-variant);
   display: flex;
-  gap: 2rem;
-  margin-bottom: 2rem;
+  gap: var(--md-spacing-8);
+  margin-bottom: var(--md-spacing-8);
   align-items: center;
 }
 
@@ -463,19 +825,26 @@ body {
 }
 
 .profile-username {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
+  /* Headline Medium Typography */
+  font-size: var(--md-headline-medium-size);
+  line-height: var(--md-headline-medium-line-height);
+  font-weight: var(--md-headline-medium-weight);
+  margin-bottom: var(--md-spacing-2);
+  color: var(--md-on-surface);
 }
 
 .profile-bio {
-  color: var(--text-secondary);
-  margin-bottom: 1rem;
+  color: var(--md-on-surface-variant);
+  margin-bottom: var(--md-spacing-4);
+  /* Body Large Typography */
+  font-size: var(--md-body-large-size);
+  line-height: var(--md-body-large-line-height);
 }
 
 .profile-stats {
   display: flex;
-  gap: 2rem;
-  margin: 1rem 0;
+  gap: var(--md-spacing-8);
+  margin: var(--md-spacing-4) 0;
 }
 
 .stat {
@@ -485,53 +854,68 @@ body {
 }
 
 .stat-value {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--primary-color);
+  /* Title Large Typography */
+  font-size: var(--md-title-large-size);
+  line-height: var(--md-title-large-line-height);
+  font-weight: var(--md-title-large-weight);
+  color: var(--md-primary);
 }
 
 .stat-label {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
+  /* Body Medium Typography */
+  font-size: var(--md-body-medium-size);
+  line-height: var(--md-body-medium-line-height);
+  color: var(--md-on-surface-variant);
 }
 
 .profile-posts {
-  background-color: var(--surface);
-  padding: 2rem;
-  border-radius: 1rem;
-  box-shadow: var(--shadow);
+  background-color: var(--md-surface);
+  padding: var(--md-spacing-8);
+  border-radius: var(--md-shape-corner-large);
+  /* フラットデザイン - 影なし */
+  box-shadow: none;
+  border: 1px solid var(--md-outline-variant);
 }
 
 .posts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-top: 1rem;
+  gap: var(--md-spacing-6);
+  margin-top: var(--md-spacing-4);
 }
 
+/* Material Design 3 Card */
 .post-card {
-  background-color: var(--background);
-  padding: 1.5rem;
-  border-radius: 0.75rem;
+  background-color: var(--md-surface-variant);
+  padding: var(--md-spacing-6);
+  border-radius: var(--md-shape-corner-medium);
   text-decoration: none;
-  color: var(--text-primary);
-  transition: transform 0.2s, box-shadow 0.2s;
+  color: var(--md-on-surface);
+  /* フラットデザイン - transformなし、影なし */
+  transition: background-color var(--md-transition-duration-short) var(--md-transition-easing-standard);
+  border: 1px solid var(--md-outline-variant);
 }
 
 .post-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  background-color: var(--md-secondary-container);
+  /* フラットデザイン - transformなし、影なし */
 }
 
 .post-card-title {
-  font-size: 1.25rem;
-  margin-bottom: 0.5rem;
+  /* Title Medium Typography */
+  font-size: var(--md-title-medium-size);
+  line-height: var(--md-title-medium-line-height);
+  font-weight: var(--md-title-medium-weight);
+  margin-bottom: var(--md-spacing-2);
+  color: var(--md-on-surface);
 }
 
 .post-card-description {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.5rem;
+  /* Body Medium Typography */
+  font-size: var(--md-body-medium-size);
+  line-height: var(--md-body-medium-line-height);
+  color: var(--md-on-surface-variant);
+  margin-bottom: var(--md-spacing-2);
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -540,25 +924,34 @@ body {
 }
 
 .post-card-location {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.5rem;
+  /* Body Small Typography */
+  font-size: var(--md-body-small-size);
+  line-height: var(--md-body-small-line-height);
+  color: var(--md-on-surface-variant);
+  margin-bottom: var(--md-spacing-2);
 }
 
 .post-card-stats {
   display: flex;
-  gap: 1rem;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.5rem;
+  gap: var(--md-spacing-4);
+  /* Body Small Typography */
+  font-size: var(--md-body-small-size);
+  line-height: var(--md-body-small-line-height);
+  color: var(--md-on-surface-variant);
+  margin-bottom: var(--md-spacing-2);
 }
 
 .post-card-date {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
+  /* Label Small Typography */
+  font-size: var(--md-label-small-size);
+  line-height: var(--md-label-small-line-height);
+  color: var(--md-on-surface-variant);
 }
 
-/* タイムライン */
+/* ========================================
+   タイムライン - Material Design 3
+   ======================================== */
+
 .timeline-container {
   max-width: 700px;
   margin: 0 auto;
@@ -567,26 +960,32 @@ body {
 .timeline-posts {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--md-spacing-6);
 }
 
+/* Material Design 3 Card */
 .timeline-post {
-  background-color: var(--surface);
-  padding: 1.5rem;
-  border-radius: 1rem;
-  box-shadow: var(--shadow);
+  background-color: var(--md-surface);
+  padding: var(--md-spacing-6);
+  border-radius: var(--md-shape-corner-large);
+  /* フラットデザイン - 影なし */
+  box-shadow: none;
+  border: 1px solid var(--md-outline-variant);
 }
 
 .timeline-post .post-content {
   display: block;
   text-decoration: none;
-  color: var(--text-primary);
-  margin: 1rem 0;
+  color: var(--md-on-surface);
+  margin: var(--md-spacing-4) 0;
 }
 
 .timeline-post .post-title {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
+  /* Title Large Typography */
+  font-size: var(--md-title-large-size);
+  line-height: var(--md-title-large-line-height);
+  font-weight: var(--md-title-large-weight);
+  margin-bottom: var(--md-spacing-2);
 }
 
 .stat-link {
@@ -598,39 +997,53 @@ body {
   color: var(--primary-color);
 }
 
-/* 空の状態 */
+/* ========================================
+   空の状態 - Material Design 3
+   ======================================== */
+
 .empty-state {
   text-align: center;
-  padding: 4rem 2rem;
+  padding: var(--md-spacing-16) var(--md-spacing-8);
 }
 
 .empty-message {
-  font-size: 1.25rem;
-  color: var(--text-secondary);
-  margin-bottom: 1rem;
+  /* Title Large Typography */
+  font-size: var(--md-title-large-size);
+  line-height: var(--md-title-large-line-height);
+  font-weight: var(--md-title-large-weight);
+  color: var(--md-on-surface-variant);
+  margin-bottom: var(--md-spacing-4);
 }
 
 .empty-hint {
-  color: var(--text-secondary);
-  margin-bottom: 2rem;
+  /* Body Large Typography */
+  font-size: var(--md-body-large-size);
+  line-height: var(--md-body-large-line-height);
+  color: var(--md-on-surface-variant);
+  margin-bottom: var(--md-spacing-8);
 }
 
 .empty-actions {
   display: flex;
-  gap: 1rem;
+  gap: var(--md-spacing-4);
   justify-content: center;
 }
 
-/* 地図 */
+/* ========================================
+   地図 - Material Design 3
+   ======================================== */
+
 .map-container {
-  background-color: var(--surface);
-  padding: 1.5rem;
-  border-radius: 1rem;
-  box-shadow: var(--shadow);
+  background-color: var(--md-surface);
+  padding: var(--md-spacing-6);
+  border-radius: var(--md-shape-corner-large);
+  /* フラットデザイン - 影なし */
+  box-shadow: none;
+  border: 1px solid var(--md-outline-variant);
 }
 
 #map {
-  border-radius: 0.5rem;
+  border-radius: var(--md-shape-corner-medium);
   overflow: hidden;
 }
 
