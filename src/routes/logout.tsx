@@ -1,10 +1,11 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { deleteCurrentSession } from "~/utils/session";
+import { getEnv } from "~/utils/db.server";
 
 const logoutFn = createServerFn({ method: "POST" }).handler(
   async ({ context }) => {
-    const env = (context as any).cloudflare.env;
+    const env = getEnv(context);
 
     // Delete session from KV and clear cookie
     await deleteCurrentSession(env.SESSION_KV);

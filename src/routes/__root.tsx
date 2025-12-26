@@ -9,11 +9,18 @@ import {
 import { createServerFn } from "@tanstack/react-start";
 import type { ReactNode } from "react";
 import appCss from "~/styles/app.css?url";
-import { getCurrentSession, type SessionData } from "~/utils/session";
+import { getCurrentSession } from "~/utils/session";
+import { getEnv } from "~/utils/db.server";
 
 const getSessionFn = createServerFn({ method: "GET" }).handler(
   async ({ context }) => {
-    const env = (context as any).cloudflare.env;
+    const env = getEnv(context);
+    
+    // SESSION_KVが利用できない場合（開発環境など）はnullを返す
+    if (!env.SESSION_KV) {
+      return { user: null };
+    }
+    
     const session = await getCurrentSession(env.SESSION_KV);
     return { user: session };
   }

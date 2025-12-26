@@ -5,9 +5,16 @@ import { generateId, getCurrentTimestamp } from "~/utils/db.server";
 import bcrypt from "bcryptjs";
 import { createAndSetSession } from "~/utils/session";
 
+import { getEnv } from "~/utils/db.server";
+
 const registerFn = createServerFn({ method: "POST" }).handler(async ({ data, context }: { data: { email: string; username: string; password: string }; context: any }) => {
     const { email, username, password } = data;
-    const env = (context as any).cloudflare.env;
+    const env = getEnv(context);
+    
+    if (!env.DATABASE) {
+      return { error: "データベース接続が利用できません" };
+    }
+    
     const db = env.DATABASE;
 
     // Check if user exists

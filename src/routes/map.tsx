@@ -1,12 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { Suspense, lazy } from "react";
+import { getEnv } from "~/utils/db.server";
 
 const MapComponent = lazy(() => import("~/components/Map"));
 
 const getMapPostsFn = createServerFn({ method: "GET" }).handler(
   async ({ context }) => {
-    const db = (context as any).cloudflare.env.DATABASE;
+    const env = getEnv(context);
+    
+    if (!env.DATABASE) {
+      console.error("DATABASE binding is not available");
+      return { posts: [] };
+    }
+    
+    const db = env.DATABASE;
 
     const postsResult = await db
       .prepare(`

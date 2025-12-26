@@ -1,8 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { getEnv } from "~/utils/db.server";
 
 const getProfileFn = createServerFn({ method: "GET" }).handler(async ({ data, context }: { data: { username: string }; context: any }) => {
-    const db = (context as any).cloudflare.env.DATABASE;
+    const env = getEnv(context);
+    
+    if (!env.DATABASE) {
+      console.error("DATABASE binding is not available");
+      return { user: null, posts: [], followersCount: 0, followingCount: 0 };
+    }
+    
+    const db = env.DATABASE;
 
     const user = await db
       .prepare(

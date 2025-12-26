@@ -1,9 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { getEnv } from "~/utils/db.server";
 
 const getTimelineFn = createServerFn({ method: "GET" }).handler(
   async ({ context }) => {
-    const db = (context as any).cloudflare.env.DATABASE;
+    const env = getEnv(context);
+    
+    if (!env.DATABASE) {
+      console.error("DATABASE binding is not available");
+      return { posts: [] };
+    }
+    
+    const db = env.DATABASE;
 
     // Get posts from all users for now
     const postsResult = await db
