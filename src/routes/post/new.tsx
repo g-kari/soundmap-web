@@ -8,7 +8,7 @@ import { useState, useRef } from "react";
 import { generateId, getCurrentTimestamp } from "~/utils/db.server";
 import { getCurrentSession } from "~/utils/session";
 import { uploadAudioToR2, getR2PublicUrl } from "~/utils/upload";
-import { checkRateLimit } from "~/utils/rate-limit";
+import { checkRateLimit, UPLOAD_RATE_LIMIT } from "~/utils/rate-limit";
 
 const uploadAudioFn = createServerFn({ method: "POST" })
   .validator((formData: FormData) => formData)
@@ -22,10 +22,11 @@ const uploadAudioFn = createServerFn({ method: "POST" })
     }
 
     // Rate limiting: 10 uploads per hour per user
-    const rateLimit = await checkRateLimit(env.SESSION_KV, `upload:${session.userId}`, {
-      maxRequests: 10,
-      windowMs: 60 * 60 * 1000, // 1 hour
-    });
+    const rateLimit = await checkRateLimit(
+      env.SESSION_KV,
+      `upload:${session.userId}`,
+      UPLOAD_RATE_LIMIT
+    );
 
     if (!rateLimit.allowed) {
       const resetDate = new Date(rateLimit.resetAt);

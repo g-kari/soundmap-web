@@ -2,6 +2,12 @@
  * Rate limiting utilities for preventing abuse
  */
 
+// Default rate limit configurations
+export const UPLOAD_RATE_LIMIT = {
+  maxRequests: 10,
+  windowMs: 60 * 60 * 1000, // 1 hour
+} as const;
+
 export interface RateLimitConfig {
   maxRequests: number;
   windowMs: number;
@@ -18,6 +24,10 @@ export interface RateLimitInfo {
  * @param key - Unique identifier (userId or IP address)
  * @param config - Rate limit configuration
  * @returns Object with allowed status and remaining requests
+ * 
+ * Note: This implementation has a potential race condition with concurrent requests,
+ * as the read-modify-write operation is not atomic. For the use case of preventing
+ * abuse, slight overruns are acceptable and won't cause significant issues.
  */
 export async function checkRateLimit(
   kv: KVNamespace,
@@ -81,28 +91,4 @@ export async function checkRateLimit(
     remaining: config.maxRequests - info.count,
     resetAt: info.resetAt,
   };
-}
-
-/**
- * Get the client IP address from request headers
- * Falls back to a default if not found
- */
-export function getClientIp(headers: Headers): string {
-  // Cloudflare provides CF-Connecting-IP header
-  const cfIp = headers.get("CF-Connecting-IP");
-  if (cfIp) return cfIp;
-  
-  // Fallback to X-Forwarded-For
-  const forwardedFor = headers.get("X-Forwarded-For");
-  if (forwardedFor) {
-    // Take the first IP in the list
-    return forwardedFor.split(",")[0].trim();
-  }
-  
-  // Fallback to X-Real-IP
-  const realIp = headers.get("X-Real-IP");
-  if (realIp) return realIp;
-  
-  // Default fallback
-  return "unknown";
 }
