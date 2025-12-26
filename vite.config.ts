@@ -10,7 +10,20 @@ export default defineConfig({
     remixCloudflareDevProxy(),
     remix({
       ignoredRouteFiles: ["**/*.css"],
+      future: {
+        // React Router v7 への移行準備
+        v3_fetcherPersist: true,
+        v3_relativeSplatPath: true,
+        v3_throwAbortReason: true,
+        v3_singleFetch: true,
+        v3_lazyRouteDiscovery: true,
+      },
     }),
     tsconfigPaths(),
   ],
+  build: {
+    rollupOptions: {
+      external: ["@prisma/client"],
+    },
+  },
 });

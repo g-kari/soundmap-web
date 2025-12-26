@@ -11,7 +11,7 @@ import {
 } from "@remix-run/react";
 
 import { getUser } from "~/utils/session.server.cloudflare";
-import stylesheet from "~/styles/app.css";
+import stylesheet from "~/styles/app.css?url";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },

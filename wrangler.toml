@@ -9,12 +9,12 @@ pages_build_output_dir = "./build/client"
 [[d1_databases]]
 binding = "DATABASE"
 database_name = "soundmap-db"
-database_id = "your-database-id-here"
+database_id = "03d5131e-beb3-4142-9f44-4e430921836f"
 
 # KV for sessions
 [[kv_namespaces]]
 binding = "SESSION_KV"
-id = "your-kv-namespace-id-here"
+id = "2e73e7ed1d464b9f82859dd3421a1e80"
 
 # R2 for audio files
 [[r2_buckets]]

@@ -1,57 +1,19 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import { Form, useActionData } from "@remix-run/react";
-import { requireUserId } from "~/utils/session.server";
-import { uploadAudioFile } from "~/utils/upload.server";
-import { prisma } from "~/utils/db.server";
+import { requireUserId } from "~/utils/session.server.cloudflare";
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  await requireUserId(request);
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  await requireUserId(request, context);
   return json({});
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  const userId = await requireUserId(request);
-
-  try {
-    const audioUrl = await uploadAudioFile(request);
-    const formData = await request.formData();
-    const title = formData.get("title");
-    const description = formData.get("description");
-    const latitude = formData.get("latitude");
-    const longitude = formData.get("longitude");
-    const location = formData.get("location");
-
-    if (
-      typeof title !== "string" ||
-      typeof latitude !== "string" ||
-      typeof longitude !== "string"
-    ) {
-      return json(
-        { error: "必須項目を入力してください" },
-        { status: 400 }
-      );
-    }
-
-    const post = await prisma.post.create({
-      data: {
-        userId,
-        title,
-        description: typeof description === "string" ? description : null,
-        audioUrl,
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
-        location: typeof location === "string" ? location : null,
-      },
-    });
-
-    return redirect(`/post/${post.id}`);
-  } catch (error) {
-    return json(
-      { error: "投稿に失敗しました" },
-      { status: 500 }
-    );
-  }
+export async function action({ request, context }: ActionFunctionArgs) {
+  // TODO: Convert this route to use D1 instead of Prisma
+  return json(
+    { error: "This feature is being migrated to Cloudflare D1. Coming soon!" },
+    { status: 503 }
+  );
 }
 
 export default function NewPost() {
