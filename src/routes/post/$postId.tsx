@@ -1,9 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 
-const getPostFn = createServerFn({ method: "GET" })
-  .validator((data: { postId: string }) => data)
-  .handler(async ({ data, context }) => {
+const getPostFn = createServerFn({ method: "GET" }).handler(async ({ data, context }: { data: { postId: string }; context: any }) => {
     const db = (context as any).cloudflare.env.DATABASE;
 
     const post = await db

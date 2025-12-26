@@ -17,22 +17,15 @@
 
 ## 技術スタック
 
-- **フレームワーク**: Remix 2.x (React Router v7 準拠)
+- **フレームワーク**: TanStack Start (TanStack Router + React Start)
 - **言語**: TypeScript
 - **プラットフォーム**: Cloudflare Pages
 - **データベース**: Cloudflare D1 (SQLite)
 - **ストレージ**: Cloudflare R2 (音声ファイル)
 - **セッション**: Cloudflare KV
 - **スタイリング**: CSS
-- **地図**: Leaflet
+- **地図**: Leaflet + React Leaflet
 - **認証**: セッションベース認証 (Cookie)
-
-### React Router v7 対応
-
-このプロジェクトは React Router v7 への移行準備が完了しています：
-- ✅ 全ての future flags が有効化済み
-- ✅ ビルド警告なし
-- ⏳ パッケージの完全移行は任意のタイミングで実行可能
 
 ## Cloudflare Pagesでのセットアップ
 
@@ -56,7 +49,7 @@ npm install
 npx wrangler d1 create soundmap-db
 ```
 
-作成されたデータベースIDを `wrangler.toml` の `database_id` に設定します。
+作成されたデータベースIDを `wrangler.jsonc` の `database_id` に設定します。
 
 #### KVネームスペースの作成
 
@@ -68,7 +61,7 @@ npx wrangler kv namespace create SESSION_KV
 npx wrangler kv:namespace create SESSION_KV
 ```
 
-作成されたKV IDを `wrangler.toml` の `id` に設定します。
+作成されたKV IDを `wrangler.jsonc` の `id` に設定します。
 
 #### R2バケットの作成
 
@@ -85,11 +78,10 @@ npm run db:migrate
 ### 5. 開発環境での実行
 
 ```bash
-npm run build
 npm run dev
 ```
 
-アプリケーションは `http://localhost:8788` で起動します。
+アプリケーションは `http://localhost:5173` で起動します。
 
 ### 6. Cloudflare Pagesへのデプロイ
 
@@ -145,31 +137,36 @@ Proxy status: Proxied (オレンジクラウド)
 
 ```
 soundmap-web/
-├── app/
-│   ├── components/       # 再利用可能なコンポーネント
-│   ├── routes/          # ページルート
+├── src/
+│   ├── components/      # 再利用可能なコンポーネント
+│   ├── routes/          # ファイルベースルーティング
+│   │   ├── __root.tsx   # ルートレイアウト
+│   │   ├── index.tsx    # ホームページ
+│   │   ├── post/        # 投稿関連ルート
+│   │   └── profile/     # プロフィール関連ルート
 │   ├── styles/          # CSSスタイル
 │   ├── utils/           # ユーティリティ関数
-│   │   ├── *.cloudflare.ts  # Cloudflare専用ユーティリティ
-│   │   └── *.server.ts      # サーバー側ユーティリティ（レガシー）
-│   ├── entry.client.tsx # クライアントエントリーポイント
-│   ├── entry.server.tsx # サーバーエントリーポイント
-│   └── root.tsx         # ルートコンポーネント
+│   │   ├── session.ts   # セッション管理
+│   │   ├── db.server.ts # データベースヘルパー
+│   │   └── rate-limit.ts # レート制限
+│   ├── types/           # TypeScript型定義
+│   ├── client.tsx       # クライアントエントリーポイント
+│   ├── ssr.tsx          # サーバーエントリーポイント
+│   └── router.tsx       # ルーター設定
 ├── migrations/          # D1データベースマイグレーション
-├── public/
-├── wrangler.toml        # Cloudflare設定
-├── load-context.ts      # 型定義
+├── load-context.ts      # Cloudflare環境の型定義
+├── wrangler.jsonc       # Cloudflare設定
+├── vite.config.ts       # Vite設定
 └── package.json
 ```
 
 ## 利用可能なスクリプト
 
+- `npm run dev` - 開発サーバーを起動 (http://localhost:5173)
 - `npm run build` - 本番用にビルド
-- `npm run dev` - 開発サーバーを起動
 - `npm run preview` - プレビューサーバーを起動
 - `npm run deploy` - Cloudflare Pagesにデプロイ
 - `npm run typecheck` - TypeScriptの型チェック
-- `npm run lint` - ESLintでコードをチェック
 - `npm run cf-typegen` - Cloudflare型定義を生成
 - `npm run db:migrate` - 本番環境にマイグレーション適用
 - `npm run db:migrate:local` - ローカルにマイグレーション適用
@@ -182,7 +179,7 @@ Cloudflare Pagesの環境変数として以下を設定：
 - `SESSION_KV` - KVネームスペースバインディング
 - `AUDIO_BUCKET` - R2バケットバインディング
 
-これらは `wrangler.toml` で設定されます。
+これらは `wrangler.jsonc` で設定されます。
 
 ## 注意事項
 
@@ -194,51 +191,38 @@ Cloudflare Pagesの環境変数として以下を設定：
 
 ### 開発時の注意
 
-#### ✅ Cloudflare対応完了ファイル
+#### サーバー関数の記述方法
 
-以下のルートは既にCloudflare対応済みです：
-- ✅ 認証: `login.tsx`, `register.tsx`, `logout.tsx`
-- ✅ メイン: `root.tsx`, `_index.tsx`, `timeline.tsx`, `map.tsx`
-- ✅ アクション: `post.$postId.like.tsx`, `post.$postId.comment.tsx`, `profile.$username.follow.tsx`
-
-#### ⚠️ D1 移行待ちの機能（一時的に無効化）
-
-以下の3つのルートは Prisma から D1 への移行が未完了のため、一時的にスタブ化されています（503 エラーを返します）：
-
-1. **`app/routes/post.new.tsx`** - 新規投稿
-   - TODO: R2へのファイルアップロード + D1 INSERT クエリの実装
-
-2. **`app/routes/post.$postId.tsx`** - 投稿詳細
-   - TODO: 複数テーブルの JOIN クエリ + いいね・コメントの集計
-
-3. **`app/routes/profile.$username.tsx`** - ユーザープロフィール
-   - TODO: ユーザー情報と投稿一覧の取得 + フォロー状態の確認
-
-#### 移行方法（今後の作業）
-
-各ファイルを以下のように変更してください：
+TanStack Startでは、`.validator()`メソッドは使用できません。型は`handler`関数のパラメータで直接指定してください：
 
 ```typescript
-// Before (Prisma - 現在スタブ化)
-import { json } from "@remix-run/cloudflare";
+// ✅ 正しい書き方
+const myServerFn = createServerFn({ method: "POST" }).handler(
+  async ({ data, context }: {
+    data: { email: string; password: string };
+    context: any
+  }) => {
+    const db = (context as any).cloudflare.env.DATABASE;
+    // ... 実装
+  }
+);
 
-export async function loader({ request, context }: LoaderFunctionArgs) {
-  throw new Response("This feature is being migrated to Cloudflare D1. Coming soon!", { status: 503 });
-}
-
-// After (D1 - 実装予定)
-import { json } from "@remix-run/cloudflare";
-import { getDB } from "~/utils/db.server.cloudflare";
-
-export async function loader({ request, context }: LoaderFunctionArgs) {
-  const db = getDB(context);
-  const result = await db.prepare("SELECT * FROM posts WHERE user_id = ?").bind(userId).all();
-  const posts = result.results;
-  return json({ posts });
-}
+// ❌ 間違った書き方（エラーになります）
+const myServerFn = createServerFn({ method: "POST" })
+  .validator((data: { email: string }) => data)  // このメソッドは存在しません
+  .handler(async ({ data, context }) => { ... });
 ```
 
-参考実装: `app/routes/timeline.tsx`, `app/routes/post.$postId.like.tsx`, `app/routes/post.$postId.comment.tsx`
+#### Cloudflareバインディングへのアクセス
+
+コンテキストを通じてCloudflareのリソースにアクセスします：
+
+```typescript
+const env = (context as any).cloudflare.env;
+const db = env.DATABASE;        // D1データベース
+const kv = env.SESSION_KV;      // KVネームスペース
+const bucket = env.AUDIO_BUCKET; // R2バケット
+```
 
 ## ライセンス
 

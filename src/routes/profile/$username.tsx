@@ -1,9 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 
-const getProfileFn = createServerFn({ method: "GET" })
-  .validator((data: { username: string }) => data)
-  .handler(async ({ data, context }) => {
+const getProfileFn = createServerFn({ method: "GET" }).handler(async ({ data, context }: { data: { username: string }; context: any }) => {
     const db = (context as any).cloudflare.env.DATABASE;
 
     const user = await db

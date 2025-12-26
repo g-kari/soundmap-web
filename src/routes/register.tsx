@@ -5,11 +5,7 @@ import { generateId, getCurrentTimestamp } from "~/utils/db.server";
 import bcrypt from "bcryptjs";
 import { createAndSetSession } from "~/utils/session";
 
-const registerFn = createServerFn({ method: "POST" })
-  .validator(
-    (data: { email: string; username: string; password: string }) => data
-  )
-  .handler(async ({ data, context }) => {
+const registerFn = createServerFn({ method: "POST" }).handler(async ({ data, context }: { data: { email: string; username: string; password: string }; context: any }) => {
     const { email, username, password } = data;
     const env = (context as any).cloudflare.env;
     const db = env.DATABASE;

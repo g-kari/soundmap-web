@@ -11,9 +11,7 @@ import { uploadAudioToR2, getR2PublicUrl } from "~/utils/upload";
 import { checkRateLimit, UPLOAD_RATE_LIMIT } from "~/utils/rate-limit";
 import { logger } from "~/utils/logger";
 
-const uploadAudioFn = createServerFn({ method: "POST" })
-  .validator((formData: FormData) => formData)
-  .handler(async ({ data: formData, context }) => {
+const uploadAudioFn = createServerFn({ method: "POST" }).handler(async ({ data: formData, context }: { data: FormData; context: any }) => {
     const env = (context as any).cloudflare.env;
 
     // Get session
@@ -79,18 +77,14 @@ const uploadAudioFn = createServerFn({ method: "POST" })
     }
   });
 
-const createPostFn = createServerFn({ method: "POST" })
-  .validator(
-    (data: {
+const createPostFn = createServerFn({ method: "POST" }).handler(async ({ data, context }: { data: {
       title: string;
       description?: string;
       audioUrl: string;
       latitude?: number;
       longitude?: number;
       location?: string;
-    }) => data
-  )
-  .handler(async ({ data, context }) => {
+    }; context: any }) => {
     const env = (context as any).cloudflare.env;
     const db = env.DATABASE;
 

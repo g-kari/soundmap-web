@@ -4,9 +4,7 @@ import { useState } from "react";
 import bcrypt from "bcryptjs";
 import { createAndSetSession } from "~/utils/session";
 
-const loginFn = createServerFn({ method: "POST" })
-  .validator((data: { email: string; password: string }) => data)
-  .handler(async ({ data, context }) => {
+const loginFn = createServerFn({ method: "POST" }).handler(async ({ data, context }: { data: { email: string; password: string }; context: any }) => {
     const { email, password } = data;
     const env = (context as any).cloudflare.env;
     const db = env.DATABASE;
