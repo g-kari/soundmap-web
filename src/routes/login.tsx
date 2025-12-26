@@ -1,17 +1,20 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { getDB, generateId, getCurrentTimestamp } from "~/utils/db.server";
 import bcrypt from "bcryptjs";
+import { createAndSetSession } from "~/utils/session";
 
 const loginFn = createServerFn({ method: "POST" })
   .validator((data: { email: string; password: string }) => data)
   .handler(async ({ data, context }) => {
     const { email, password } = data;
-    const db = (context as any).cloudflare.env.DATABASE;
+    const env = (context as any).cloudflare.env;
+    const db = env.DATABASE;
 
     const user = await db
-      .prepare("SELECT id, email, password_hash, username FROM users WHERE email = ?")
+      .prepare(
+        "SELECT id, email, password_hash, username FROM users WHERE email = ?"
+      )
       .bind(email)
       .first();
 
@@ -24,7 +27,13 @@ const loginFn = createServerFn({ method: "POST" })
       return { error: "メールアドレスまたはパスワードが間違っています" };
     }
 
-    // TODO: セッション作成
+    // Create session and set cookie
+    await createAndSetSession(env.SESSION_KV, {
+      userId: user.id,
+      username: user.username,
+      email: user.email,
+    });
+
     return { success: true, userId: user.id };
   });
 

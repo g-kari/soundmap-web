@@ -6,8 +6,18 @@ import {
   Scripts,
   Link,
 } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
 import type { ReactNode } from "react";
 import appCss from "~/styles/app.css?url";
+import { getCurrentSession, type SessionData } from "~/utils/session";
+
+const getSessionFn = createServerFn({ method: "GET" }).handler(
+  async ({ context }) => {
+    const env = (context as any).cloudflare.env;
+    const session = await getCurrentSession(env.SESSION_KV);
+    return { user: session };
+  }
+);
 
 export const Route = createRootRoute({
   head: () => ({
@@ -24,6 +34,10 @@ export const Route = createRootRoute({
       },
     ],
   }),
+  loader: async () => {
+    const { user } = await getSessionFn();
+    return { user };
+  },
   component: RootComponent,
 });
 
@@ -42,6 +56,8 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
 }
 
 function RootComponent() {
+  const { user } = Route.useLoaderData();
+
   return (
     <RootDocument>
       <nav className="navbar">
@@ -58,15 +74,32 @@ function RootComponent() {
             <Link to="/map" className="navbar-link">
               地図
             </Link>
-            <Link to="/post/new" className="navbar-link">
-              投稿
-            </Link>
-            <Link to="/login" className="navbar-link">
-              ログイン
-            </Link>
-            <Link to="/register" className="navbar-link">
-              新規登録
-            </Link>
+            {user ? (
+              <>
+                <Link to="/post/new" className="navbar-link">
+                  投稿
+                </Link>
+                <Link
+                  to="/profile/$username"
+                  params={{ username: user.username }}
+                  className="navbar-link"
+                >
+                  {user.username}
+                </Link>
+                <Link to="/logout" className="navbar-link">
+                  ログアウト
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="navbar-link">
+                  ログイン
+                </Link>
+                <Link to="/register" className="navbar-link">
+                  新規登録
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>

@@ -1,12 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "soundmap-web",
-  "main": "./dist/server/server.js",
   "compatibility_date": "2025-01-01",
   "compatibility_flags": ["nodejs_compat"],
-  "assets": {
-    "directory": "./dist/client"
-  },
   // D1 Database
   "d1_databases": [
     {
