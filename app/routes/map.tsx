@@ -1,28 +1,31 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
-import { prisma } from "~/utils/db.server";
-import { requireUserId } from "~/utils/session.server";
+import { getDB } from "~/utils/db.server.cloudflare";
+import { requireUserId } from "~/utils/session.server.cloudflare";
 import Map from "~/components/Map";
 import ClientOnly from "~/components/ClientOnly";
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  await requireUserId(request);
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  await requireUserId(request, context);
+  const db = getDB(context);
 
-  const posts = await prisma.post.findMany({
-    include: {
-      user: {
-        select: {
-          username: true,
-        },
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  const posts = await db
+    .prepare(`
+      SELECT
+        p.id,
+        p.title,
+        p.latitude,
+        p.longitude,
+        p.location,
+        u.username
+      FROM posts p
+      JOIN users u ON p.user_id = u.id
+      ORDER BY p.created_at DESC
+    `)
+    .all();
 
-  return json({ posts });
+  return json({ posts: posts.results });
 }
 
 export default function MapPage() {

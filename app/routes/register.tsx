@@ -1,17 +1,17 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { json, redirect } from "@remix-run/cloudflare";
 import { Form, Link, useActionData } from "@remix-run/react";
-import { register } from "~/utils/auth.server";
-import { createUserSession, getUserId } from "~/utils/session.server";
-import { prisma } from "~/utils/db.server";
+import { register } from "~/utils/auth.server.cloudflare";
+import { createUserSession, getUserId } from "~/utils/session.server.cloudflare";
+import { getDB } from "~/utils/db.server.cloudflare";
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request, context }: LoaderFunctionArgs) {
   const userId = await getUserId(request);
   if (userId) return redirect("/timeline");
   return json({});
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request, context }: ActionFunctionArgs) {
   const formData = await request.formData();
   const email = formData.get("email");
   const username = formData.get("username");
@@ -35,11 +35,11 @@ export async function action({ request }: ActionFunctionArgs) {
     );
   }
 
-  const existingUser = await prisma.user.findFirst({
-    where: {
-      OR: [{ email }, { username }],
-    },
-  });
+  const db = getDB(context);
+  const existingUser = await db
+    .prepare("SELECT id FROM users WHERE email = ? OR username = ? LIMIT 1")
+    .bind(email, username)
+    .first();
 
   if (existingUser) {
     return json(
@@ -48,9 +48,9 @@ export async function action({ request }: ActionFunctionArgs) {
     );
   }
 
-  const user = await register({ email, username, password });
+  const user = await register({ email, username, password }, context);
 
-  return createUserSession(user.id, "/timeline");
+  return createUserSession(user.id, "/timeline", context);
 }
 
 export default function Register() {

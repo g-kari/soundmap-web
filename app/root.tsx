@@ -1,5 +1,5 @@
-import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import {
   Links,
   LiveReload,
@@ -10,7 +10,7 @@ import {
   useLoaderData,
 } from "@remix-run/react";
 
-import { getUser } from "~/utils/session.server";
+import { getUser } from "~/utils/session.server.cloudflare";
 import stylesheet from "~/styles/app.css";
 
 export const links: LinksFunction = () => [
@@ -21,8 +21,8 @@ export const links: LinksFunction = () => [
   },
 ];
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await getUser(request);
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  const user = await getUser(request, context);
   return json({ user });
 }
 

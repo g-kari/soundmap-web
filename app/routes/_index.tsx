@@ -1,10 +1,10 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import { useLoaderData, Link } from "@remix-run/react";
-import { getUser } from "~/utils/session.server";
+import { getUser } from "~/utils/session.server.cloudflare";
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await getUser(request);
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  const user = await getUser(request, context);
   return json({ user });
 }
 

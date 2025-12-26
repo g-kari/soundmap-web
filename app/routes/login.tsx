@@ -1,16 +1,16 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { json, redirect } from "@remix-run/cloudflare";
 import { Form, Link, useActionData, useSearchParams } from "@remix-run/react";
-import { login } from "~/utils/auth.server";
-import { createUserSession, getUserId } from "~/utils/session.server";
+import { login } from "~/utils/auth.server.cloudflare";
+import { createUserSession, getUserId } from "~/utils/session.server.cloudflare";
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request, context }: LoaderFunctionArgs) {
   const userId = await getUserId(request);
   if (userId) return redirect("/timeline");
   return json({});
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request, context }: ActionFunctionArgs) {
   const formData = await request.formData();
   const email = formData.get("email");
   const password = formData.get("password");
@@ -27,7 +27,7 @@ export async function action({ request }: ActionFunctionArgs) {
     );
   }
 
-  const user = await login({ email, password });
+  const user = await login({ email, password }, context);
 
   if (!user) {
     return json(
@@ -36,7 +36,7 @@ export async function action({ request }: ActionFunctionArgs) {
     );
   }
 
-  return createUserSession(user.id, redirectTo);
+  return createUserSession(user.id, redirectTo, context);
 }
 
 export default function Login() {

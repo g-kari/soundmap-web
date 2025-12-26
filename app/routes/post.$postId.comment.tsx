@@ -1,10 +1,10 @@
-import type { ActionFunctionArgs } from "@remix-run/node";
-import { redirect, json } from "@remix-run/node";
-import { prisma } from "~/utils/db.server";
-import { requireUserId } from "~/utils/session.server";
+import type { ActionFunctionArgs } from "@remix-run/cloudflare";
+import { redirect, json } from "@remix-run/cloudflare";
+import { getDB, generateId } from "~/utils/db.server.cloudflare";
+import { requireUserId } from "~/utils/session.server.cloudflare";
 
-export async function action({ request, params }: ActionFunctionArgs) {
-  const userId = await requireUserId(request);
+export async function action({ request, params, context }: ActionFunctionArgs) {
+  const userId = await requireUserId(request, context);
   const { postId } = params;
 
   if (!postId) {
@@ -21,13 +21,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
     );
   }
 
-  await prisma.comment.create({
-    data: {
-      userId,
-      postId,
-      content,
-    },
-  });
+  const db = getDB(context);
+  const commentId = generateId();
+  const timestamp = Math.floor(Date.now() / 1000);
+
+  await db
+    .prepare("INSERT INTO comments (id, user_id, post_id, content, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(commentId, userId, postId, content, timestamp, timestamp)
+    .run();
 
   return redirect(`/post/${postId}`);
 }

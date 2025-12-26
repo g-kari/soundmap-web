@@ -1,7 +1,7 @@
-import type { ActionFunctionArgs } from "@remix-run/node";
-import { logout } from "~/utils/session.server";
+import type { ActionFunctionArgs } from "@remix-run/cloudflare";
+import { logout } from "~/utils/session.server.cloudflare";
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request, context }: ActionFunctionArgs) {
   return logout(request);
 }
 

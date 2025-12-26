@@ -1,38 +1,35 @@
-import type { ActionFunctionArgs } from "@remix-run/node";
-import { redirect } from "@remix-run/node";
-import { prisma } from "~/utils/db.server";
-import { requireUserId } from "~/utils/session.server";
+import type { ActionFunctionArgs } from "@remix-run/cloudflare";
+import { redirect } from "@remix-run/cloudflare";
+import { getDB, generateId } from "~/utils/db.server.cloudflare";
+import { requireUserId } from "~/utils/session.server.cloudflare";
 
-export async function action({ request, params }: ActionFunctionArgs) {
-  const userId = await requireUserId(request);
+export async function action({ request, params, context }: ActionFunctionArgs) {
+  const userId = await requireUserId(request, context);
   const { postId } = params;
 
   if (!postId) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  const existingLike = await prisma.like.findUnique({
-    where: {
-      userId_postId: {
-        userId,
-        postId,
-      },
-    },
-  });
+  const db = getDB(context);
+
+  const existingLike = await db
+    .prepare("SELECT id FROM likes WHERE user_id = ? AND post_id = ?")
+    .bind(userId, postId)
+    .first();
 
   if (existingLike) {
-    await prisma.like.delete({
-      where: {
-        id: existingLike.id,
-      },
-    });
+    await db
+      .prepare("DELETE FROM likes WHERE id = ?")
+      .bind(existingLike.id)
+      .run();
   } else {
-    await prisma.like.create({
-      data: {
-        userId,
-        postId,
-      },
-    });
+    const likeId = generateId();
+    const timestamp = Math.floor(Date.now() / 1000);
+    await db
+      .prepare("INSERT INTO likes (id, user_id, post_id, created_at) VALUES (?, ?, ?, ?)")
+      .bind(likeId, userId, postId, timestamp)
+      .run();
   }
 
   return redirect(`/post/${postId}`);

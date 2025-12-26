@@ -1,19 +1,22 @@
-import type { ActionFunctionArgs } from "@remix-run/node";
-import { redirect } from "@remix-run/node";
-import { prisma } from "~/utils/db.server";
-import { requireUserId } from "~/utils/session.server";
+import type { ActionFunctionArgs } from "@remix-run/cloudflare";
+import { redirect } from "@remix-run/cloudflare";
+import { getDB, generateId } from "~/utils/db.server.cloudflare";
+import { requireUserId } from "~/utils/session.server.cloudflare";
 
-export async function action({ request, params }: ActionFunctionArgs) {
-  const userId = await requireUserId(request);
+export async function action({ request, params, context }: ActionFunctionArgs) {
+  const userId = await requireUserId(request, context);
   const { username } = params;
 
   if (!username) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  const targetUser = await prisma.user.findUnique({
-    where: { username },
-  });
+  const db = getDB(context);
+
+  const targetUser = await db
+    .prepare("SELECT id FROM users WHERE username = ?")
+    .bind(username)
+    .first<{ id: string }>();
 
   if (!targetUser) {
     throw new Response("Not Found", { status: 404 });
@@ -23,28 +26,23 @@ export async function action({ request, params }: ActionFunctionArgs) {
     throw new Response("Cannot follow yourself", { status: 400 });
   }
 
-  const existingFollow = await prisma.follow.findUnique({
-    where: {
-      followerId_followingId: {
-        followerId: userId,
-        followingId: targetUser.id,
-      },
-    },
-  });
+  const existingFollow = await db
+    .prepare("SELECT id FROM follows WHERE follower_id = ? AND following_id = ?")
+    .bind(userId, targetUser.id)
+    .first();
 
   if (existingFollow) {
-    await prisma.follow.delete({
-      where: {
-        id: existingFollow.id,
-      },
-    });
+    await db
+      .prepare("DELETE FROM follows WHERE id = ?")
+      .bind(existingFollow.id)
+      .run();
   } else {
-    await prisma.follow.create({
-      data: {
-        followerId: userId,
-        followingId: targetUser.id,
-      },
-    });
+    const followId = generateId();
+    const timestamp = Math.floor(Date.now() / 1000);
+    await db
+      .prepare("INSERT INTO follows (id, follower_id, following_id, created_at) VALUES (?, ?, ?, ?)")
+      .bind(followId, userId, targetUser.id, timestamp)
+      .run();
   }
 
   return redirect(`/profile/${username}`);
