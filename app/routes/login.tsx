@@ -4,12 +4,24 @@ import { Form, Link, useActionData, useSearchParams } from "@remix-run/react";
 import { login } from "~/utils/auth.server";
 import { createUserSession, getUserId } from "~/utils/session.server";
 
+/**
+ * Redirects authenticated users to "/timeline"; returns an empty JSON response for anonymous requests.
+ *
+ * @returns A redirect response to "/timeline" when a user session exists, otherwise an empty JSON response object.
+ */
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await getUserId(request);
   if (userId) return redirect("/timeline");
   return json({});
 }
 
+/**
+ * Handles login form submissions by validating credentials, authenticating the user, and creating a session.
+ *
+ * Validates `email`, `password`, and optional `redirectTo` from the submitted form; returns a 400 JSON error when validation or authentication fails, and creates a user session and redirects on success.
+ *
+ * @returns A Response containing a JSON error with status 400 for invalid input or failed authentication, or a redirect response that establishes a user session on successful login.
+ */
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const email = formData.get("email");
@@ -39,6 +51,11 @@ export async function action({ request }: ActionFunctionArgs) {
   return createUserSession(user.id, redirectTo);
 }
 
+/**
+ * Render the login page UI including an email and password form, a hidden `redirectTo` field populated from the URL, server-provided error display, and a link to registration.
+ *
+ * @returns The login page JSX element
+ */
 export default function Login() {
   const actionData = useActionData<typeof action>();
   const [searchParams] = useSearchParams();

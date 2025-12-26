@@ -2,14 +2,37 @@ import bcrypt from "bcryptjs";
 import type { AppLoadContext } from "@remix-run/cloudflare";
 import { getDB, generateId, getCurrentTimestamp } from "./db.server.cloudflare";
 
+/**
+ * Hashes a plaintext password using bcrypt with a salt factor of 10.
+ *
+ * @param password - The plaintext password to hash
+ * @returns The bcrypt hash of `password`
+ */
 export async function hashPassword(password: string) {
   return bcrypt.hash(password, 10);
 }
 
+/**
+ * Determines whether a plaintext password matches a bcrypt hashed password.
+ *
+ * @param password - The plaintext password to verify.
+ * @param hashedPassword - The bcrypt hash to verify against.
+ * @returns `true` if `password` matches `hashedPassword`, `false` otherwise.
+ */
 export async function verifyPassword(password: string, hashedPassword: string) {
   return bcrypt.compare(password, hashedPassword);
 }
 
+/**
+ * Create a new user account by hashing the provided password and inserting the user record into the database.
+ *
+ * @param param0 - Object containing the registration fields.
+ * @param param0.email - User's email address.
+ * @param param0.username - Chosen username.
+ * @param param0.password - Plaintext password to be hashed before storage.
+ * @param context - AppLoadContext used to obtain a database instance.
+ * @returns The newly created user's `id`, `email`, and `username`.
+ */
 export async function register(
   {
     email,
@@ -37,6 +60,11 @@ export async function register(
   return { id: userId, email, username };
 }
 
+/**
+ * Authenticate a user by email and password and return their basic profile on success.
+ *
+ * @returns The user's `id`, `email`, and `username` if authentication succeeds; `null` if no user with the given email exists or the password is incorrect.
+ */
 export async function login(
   {
     email,

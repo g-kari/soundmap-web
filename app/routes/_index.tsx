@@ -3,11 +3,24 @@ import { json } from "@remix-run/node";
 import { useLoaderData, Link } from "@remix-run/react";
 import { getUser } from "~/utils/session.server";
 
+/**
+ * Load the current authenticated user from the request and return it in a JSON response.
+ *
+ * @returns A JSON response with a `user` field containing the authenticated user object or `null` if no user is authenticated.
+ */
 export async function loader({ request }: LoaderFunctionArgs) {
   const user = await getUser(request);
   return json({ user });
 }
 
+/**
+ * Render the homepage hero with localized copy and action links that change based on authentication.
+ *
+ * Displays a title, subtitle and description; shows "タイムラインを見る" and "地図を見る" when a user is present,
+ * otherwise shows "今すぐ始める" and "ログイン".
+ *
+ * @returns The JSX element for the index route's hero section.
+ */
 export default function Index() {
   const { user } = useLoaderData<typeof loader>();
 

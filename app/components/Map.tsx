@@ -15,6 +15,14 @@ interface MapProps {
   posts: Post[];
 }
 
+/**
+ * Renders an interactive Leaflet map and places a marker for each post.
+ *
+ * Each marker's popup shows the post title, the author's username, an optional location line, and a link to the post detail page.
+ *
+ * @param posts - Array of posts used to create markers with their latitude/longitude and popup content
+ * @returns A React element containing the map container (`div#map`)
+ */
 export default function Map({ posts }: MapProps) {
   useEffect(() => {
     if (typeof window === "undefined") return;

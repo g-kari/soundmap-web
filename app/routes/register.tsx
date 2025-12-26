@@ -5,12 +5,23 @@ import { register } from "~/utils/auth.server";
 import { createUserSession, getUserId } from "~/utils/session.server";
 import { prisma } from "~/utils/db.server";
 
+/**
+ * Redirects authenticated users to the timeline route or returns an empty JSON response for unauthenticated requests.
+ *
+ * @returns A Response that redirects to `/timeline` if the request is from an authenticated user, otherwise an empty JSON response.
+ */
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await getUserId(request);
   if (userId) return redirect("/timeline");
   return json({});
 }
 
+/**
+ * Handle registration form submissions, validate input, create a new user, and start a session redirecting to /timeline.
+ *
+ * @param request - The incoming HTTP request containing form data fields `email`, `username`, and `password`.
+ * @returns A redirect response to "/timeline" on successful registration; a JSON error response with HTTP status 400 when input is invalid, the password is shorter than 6 characters, or the email/username is already in use.
+ */
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const email = formData.get("email");
@@ -53,6 +64,14 @@ export async function action({ request }: ActionFunctionArgs) {
   return createUserSession(user.id, "/timeline");
 }
 
+/**
+ * Render the registration page with a form for email, username, and password.
+ *
+ * The form posts to the route's action handler, enforces client-side required/minLength constraints,
+ * and displays server-side error messages returned by the action.
+ *
+ * @returns The JSX element for the registration page
+ */
 export default function Register() {
   const actionData = useActionData<typeof action>();
 

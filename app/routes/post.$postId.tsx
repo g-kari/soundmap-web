@@ -4,6 +4,12 @@ import { useLoaderData, Link, Form } from "@remix-run/react";
 import { prisma } from "~/utils/db.server";
 import { getUser } from "~/utils/session.server";
 
+/**
+ * Loads a single post by ID along with its author, likes, comments, and counts for rendering the post detail page.
+ *
+ * @returns A JSON object containing `post` (the post record including `user`, `likes`, `comments`, and `_count`), `currentUser` (the authenticated user or `null`), and `isLiked` (`true` if `currentUser` has liked the post, `false` otherwise).
+ * @throws Response with status 404 when `postId` is missing or no matching post is found.
+ */
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { postId } = params;
   const currentUser = await getUser(request);
@@ -57,6 +63,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   return json({ post, currentUser, isLiked });
 }
 
+/**
+ * Render the post detail page showing the author header, audio player, like controls, and comments.
+ *
+ * @returns A React element representing the post detail view populated from the route loader data
+ */
 export default function PostDetail() {
   const { post, currentUser, isLiked } = useLoaderData<typeof loader>();
 

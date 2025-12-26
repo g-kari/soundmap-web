@@ -5,11 +5,21 @@ import { requireUserId } from "~/utils/session.server";
 import { uploadAudioFile } from "~/utils/upload.server";
 import { prisma } from "~/utils/db.server";
 
+/**
+ * Ensures the current request is authenticated for this route and returns an empty loader response.
+ *
+ * @returns An empty JSON object
+ */
 export async function loader({ request }: LoaderFunctionArgs) {
   await requireUserId(request);
   return json({});
 }
 
+/**
+ * Handles submission of the new-post form: uploads audio, validates inputs, creates a post, and navigates to the created post.
+ *
+ * @returns A redirect Response to `/post/{id}` on success; a 400 JSON response `{ error: "必須項目を入力してください" }` when required fields are missing; a 500 JSON response `{ error: "投稿に失敗しました" }` on other failures.
+ */
 export async function action({ request }: ActionFunctionArgs) {
   const userId = await requireUserId(request);
 
@@ -54,6 +64,15 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 }
 
+/**
+ * Render the NewPost page with a form for creating a new audio post.
+ *
+ * The form accepts title, optional description, an audio file, latitude, longitude, and an optional location name.
+ * A "Get current location" button fills the latitude and longitude inputs using the browser's Geolocation API.
+ * Server-side validation errors returned from the action are displayed above the submit button.
+ *
+ * @returns The JSX element for the NewPost page.
+ */
 export default function NewPost() {
   const actionData = useActionData<typeof action>();
 

@@ -4,6 +4,19 @@ import { useLoaderData, Link, Form } from "@remix-run/react";
 import { prisma } from "~/utils/db.server";
 import { getUser } from "~/utils/session.server";
 
+/**
+ * Load data required to render a user's profile page by username.
+ *
+ * Returns the profile user's public fields, their posts (ordered by creation date descending, with per-post like/comment counts),
+ * aggregate counts (followers, following, posts), the currently authenticated user (if any), and whether the authenticated user follows the profile.
+ *
+ * @returns An object with:
+ *  - `user`: profile fields (`id`, `username`, `email`, `bio`, `avatarUrl`, `createdAt`), `posts` (each with `_count` of `likes` and `comments`), and `_count` (followers, following, posts).
+ *  - `currentUser`: the authenticated user object or `null`.
+ *  - `isFollowing`: `true` if `currentUser` follows the profile user, `false` otherwise.
+ *
+ * @throws Response 404 if the `username` route parameter is missing or no matching user is found.
+ */
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { username } = params;
   const currentUser = await getUser(request);
@@ -71,6 +84,13 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   });
 }
 
+/**
+ * Renders a user's profile page with avatar, bio, statistics, follow action, and the user's posts.
+ *
+ * The component displays the user's avatar (or a placeholder using the first letter of the username), username, optional bio, and counts for posts, followers, and following. If a signed-in viewer is not viewing their own profile, a follow/unfollow form is shown reflecting the current following state. The posts section shows an empty message when there are no posts or a grid of post cards with title, optional description and location, like/comment counts, and a localized creation date.
+ *
+ * @returns The JSX element for the user's profile page.
+ */
 export default function Profile() {
   const { user, currentUser, isFollowing } = useLoaderData<typeof loader>();
   const isOwnProfile = currentUser?.id === user.id;

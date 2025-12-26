@@ -2,6 +2,13 @@ import { unstable_parseMultipartFormData } from "@remix-run/cloudflare";
 import type { AppLoadContext } from "@remix-run/cloudflare";
 import { generateId } from "./db.server.cloudflare";
 
+/**
+ * Handles a multipart form upload for an audio file, saves the file to Cloudflare R2, and returns its public path.
+ *
+ * @param context - The Remix AppLoadContext containing `context.cloudflare.env.AUDIO_BUCKET` used to store the uploaded file.
+ * @returns The public URL path for the uploaded audio file (e.g., `/audio/{fileName}`).
+ * @throws Error when no audio file is provided in the multipart form or the form field is invalid.
+ */
 export async function uploadAudioFile(
   request: Request,
   context: AppLoadContext
@@ -44,6 +51,13 @@ export async function uploadAudioFile(
   return `/audio/${fileName}`;
 }
 
+/**
+ * Retrieve an audio file from the Cloudflare R2 bucket and return it as an HTTP response.
+ *
+ * @param fileName - The key/name of the audio file to fetch from the AUDIO_BUCKET.
+ * @param context - The Remix AppLoadContext containing Cloudflare environment bindings (used to access `AUDIO_BUCKET`).
+ * @returns A Response containing the object's body with its HTTP metadata headers (including `etag`), or a 404 Response if the object was not found.
+ */
 export async function getAudioFile(
   fileName: string,
   context: AppLoadContext

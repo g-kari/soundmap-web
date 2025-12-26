@@ -21,11 +21,25 @@ export const links: LinksFunction = () => [
   },
 ];
 
+/**
+ * Loads the current authenticated user from the session for use by the route.
+ *
+ * @returns An object containing `user`: the authenticated user object if present, `null` otherwise.
+ */
 export async function loader({ request }: LoaderFunctionArgs) {
   const user = await getUser(request);
   return json({ user });
 }
 
+/**
+ * Render the application's root HTML layout with a navigation bar that adapts to the current user.
+ *
+ * The layout includes document metadata, linked styles, a language-set HTML shell, a navigation bar
+ * that shows authenticated links when a user is present and auth links otherwise, a main outlet
+ * for nested routes, and Remix runtime components (scroll restoration, scripts, live reload).
+ *
+ * @returns The React element representing the full HTML document for the app's root layout.
+ */
 export default function App() {
   const { user } = useLoaderData<typeof loader>();
 

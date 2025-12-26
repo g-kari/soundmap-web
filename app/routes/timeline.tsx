@@ -4,6 +4,13 @@ import { useLoaderData, Link } from "@remix-run/react";
 import { prisma } from "~/utils/db.server";
 import { requireUserId } from "~/utils/session.server";
 
+/**
+ * Loads timeline posts for the authenticated user, including posts from users they follow and their own.
+ *
+ * Retrieves up to 50 most recent posts authored by the authenticated user and users they follow, including each post's author info (id, username, avatarUrl) and counts for likes and comments.
+ *
+ * @returns An object with `posts` — an array of post records (each including `user` and `_count` for `likes` and `comments`) — and `userId` — the authenticated user's ID.
+ */
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUserId(request);
 
@@ -53,6 +60,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json({ posts, userId });
 }
 
+/**
+ * Renders the timeline page showing recent posts from the current user and users they follow.
+ *
+ * Displays an empty-state prompt when there are no posts; otherwise renders each post with author info, localized date, title, optional description and location, an audio player, like/comment counts, and links to post and profile pages.
+ *
+ * @returns The timeline page React element that presents posts or an empty-state prompt to create or discover posts
+ */
 export default function Timeline() {
   const { posts, userId } = useLoaderData<typeof loader>();
 
