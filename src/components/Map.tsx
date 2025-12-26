@@ -16,12 +16,24 @@ interface MapProps {
   posts: Post[];
 }
 
+/**
+ * Escape special HTML characters in a string so it can be inserted into HTML safely.
+ *
+ * @param text - The string to escape
+ * @returns The input text with characters like `<`, `>`, `&`, and `"` replaced by HTML entities
+ */
 function escapeHtml(text: string): string {
   const div = document.createElement("div");
   div.textContent = text;
   return div.innerHTML;
 }
 
+/**
+ * Create a DOM element suitable for use as a Leaflet popup for the given post.
+ *
+ * @param post - Post object whose `title`, `user.username`, optional `location`, and `id` are used to build the popup
+ * @returns A container HTMLElement containing an <h3> with the title, a paragraph with the author, an optional paragraph with the location (prefixed with a pin emoji), and an anchor linking to `/post/{encoded id}` with the text "詳細を見る"
+ */
 function createPopupContent(post: Post): HTMLElement {
   const container = document.createElement("div");
 
@@ -47,6 +59,14 @@ function createPopupContent(post: Post): HTMLElement {
   return container;
 }
 
+/**
+ * Render an interactive Leaflet map and display markers for the supplied posts.
+ *
+ * Each post is represented by a marker at its latitude/longitude; clicking a marker opens a popup that shows the post title, author, optional location, and a link to the post details. While the map library loads a centered loading indicator is shown; if initialization fails an error message is rendered instead.
+ *
+ * @param posts - Array of posts to display as markers. Each post's coordinates are used to place a marker and its metadata is shown in the marker popup.
+ * @returns A React element containing the map container, plus a loading overlay or a centered error message when applicable.
+ */
 export default function Map({ posts }: MapProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
