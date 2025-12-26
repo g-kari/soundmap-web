@@ -1,8 +1,13 @@
 import type { Env } from "../../load-context";
+import { drizzle } from "drizzle-orm/d1";
+import * as schema from "~/db/schema";
 
 // cloudflare:workers から env を直接インポート
 // @ts-ignore - cloudflare:workers はCloudflare Workers ランタイムでのみ利用可能
 import { env as cloudflareEnv } from "cloudflare:workers";
+
+// Drizzle ORMのデータベースインスタンス型
+export type DrizzleDB = ReturnType<typeof drizzle<typeof schema>>;
 
 // Helper function to generate UUID
 export function generateId(): string {
@@ -72,3 +77,11 @@ export async function getEnvAsync(context: any): Promise<Env> {
 export function getDB(env: { DATABASE: D1Database }) {
   return env.DATABASE;
 }
+
+// Drizzle ORMインスタンスを取得
+export function getDrizzle(env: { DATABASE: D1Database }): DrizzleDB {
+  return drizzle(env.DATABASE, { schema });
+}
+
+// スキーマをエクスポート
+export { schema };

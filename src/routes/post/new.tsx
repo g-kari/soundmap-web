@@ -5,7 +5,7 @@ import {
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useState, useRef } from "react";
-import { generateId, getCurrentTimestamp, getEnvAsync } from "~/utils/db.server";
+import { generateId, getEnvAsync, getDrizzle, schema } from "~/utils/db.server";
 import { getCurrentSession } from "~/utils/session";
 import { uploadAudioToR2, getR2PublicUrl } from "~/utils/upload";
 import { checkRateLimit, UPLOAD_RATE_LIMIT } from "~/utils/rate-limit";
@@ -90,12 +90,12 @@ const createPostFn = createServerFn({ method: "POST" }).handler(async ({ data, c
       location?: string;
     }; context: any }) => {
     const env = await getEnvAsync(context);
-    
+
     if (!env.DATABASE || !env.SESSION_KV) {
       return { error: "データベース接続が利用できません" };
     }
-    
-    const db = env.DATABASE;
+
+    const db = getDrizzle(env);
 
     // Get session
     const session = await getCurrentSession(env.SESSION_KV);
@@ -104,26 +104,17 @@ const createPostFn = createServerFn({ method: "POST" }).handler(async ({ data, c
     }
 
     const postId = generateId();
-    const now = getCurrentTimestamp();
 
-    await db
-      .prepare(
-        `INSERT INTO posts (id, user_id, title, description, audio_url, latitude, longitude, location, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      )
-      .bind(
-        postId,
-        session.userId,
-        data.title,
-        data.description || null,
-        data.audioUrl,
-        data.latitude || null,
-        data.longitude || null,
-        data.location || null,
-        now,
-        now
-      )
-      .run();
+    await db.insert(schema.posts).values({
+      id: postId,
+      userId: session.userId,
+      title: data.title,
+      description: data.description || null,
+      audioUrl: data.audioUrl,
+      latitude: data.latitude || null,
+      longitude: data.longitude || null,
+      location: data.location || null,
+    });
 
     return { success: true, postId };
   });

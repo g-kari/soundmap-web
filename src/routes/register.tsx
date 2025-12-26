@@ -1,27 +1,29 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { generateId, getCurrentTimestamp } from "~/utils/db.server";
+import { or, eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { createAndSetSession } from "~/utils/session";
-
-import { getEnvAsync } from "~/utils/db.server";
+import { generateId, getEnvAsync, getDrizzle, schema } from "~/utils/db.server";
 
 const registerFn = createServerFn({ method: "POST" }).handler(async ({ data, context }: { data: { email: string; username: string; password: string }; context: any }) => {
     const { email, username, password } = data;
     const env = await getEnvAsync(context);
-    
+
     if (!env.DATABASE) {
       return { error: "データベース接続が利用できません" };
     }
-    
-    const db = env.DATABASE;
+
+    const db = getDrizzle(env);
 
     // Check if user exists
-    const existingUser = await db
-      .prepare("SELECT id FROM users WHERE email = ? OR username = ?")
-      .bind(email, username)
-      .first();
+    const existingUser = await db.query.users.findFirst({
+      where: or(
+        eq(schema.users.email, email),
+        eq(schema.users.username, username)
+      ),
+      columns: { id: true },
+    });
 
     if (existingUser) {
       return {
@@ -32,14 +34,13 @@ const registerFn = createServerFn({ method: "POST" }).handler(async ({ data, con
     // Create user
     const passwordHash = await bcrypt.hash(password, 10);
     const userId = generateId();
-    const now = getCurrentTimestamp();
 
-    await db
-      .prepare(
-        "INSERT INTO users (id, email, username, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
-      )
-      .bind(userId, email, username, passwordHash, now, now)
-      .run();
+    await db.insert(schema.users).values({
+      id: userId,
+      email,
+      username,
+      passwordHash,
+    });
 
     // Create session and set cookie after registration
     await createAndSetSession(env.SESSION_KV, {

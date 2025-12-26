@@ -1,60 +1,60 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { getEnvAsync } from "~/utils/db.server";
+import { eq, desc } from "drizzle-orm";
+import { getEnvAsync, getDrizzle, schema } from "~/utils/db.server";
 
 const getProfileFn = createServerFn({ method: "GET" }).handler(async ({ data, context }: { data: { username: string }; context: any }) => {
     const env = await getEnvAsync(context);
-    
+
     if (!env.DATABASE) {
       console.error("DATABASE binding is not available");
       return { user: null, posts: [], followersCount: 0, followingCount: 0 };
     }
-    
-    const db = env.DATABASE;
 
-    const user = await db
-      .prepare(
-        `SELECT id, username, avatar_url as avatarUrl, bio, created_at as createdAt
-         FROM users WHERE username = ?`
-      )
-      .bind(data.username)
-      .first();
+    const db = getDrizzle(env);
+
+    const user = await db.query.users.findFirst({
+      where: eq(schema.users.username, data.username),
+      columns: {
+        id: true,
+        username: true,
+        avatarUrl: true,
+        bio: true,
+        createdAt: true,
+      },
+      with: {
+        posts: {
+          orderBy: [desc(schema.posts.createdAt)],
+        },
+        followers: true,
+        following: true,
+      },
+    });
 
     if (!user) {
       return { user: null, posts: [], followersCount: 0, followingCount: 0 };
     }
 
-    const postsResult = await db
-      .prepare(
-        `SELECT
-          id, title, description, audio_url as audioUrl,
-          latitude, longitude, location, created_at as createdAt
-        FROM posts WHERE user_id = ? ORDER BY created_at DESC`
-      )
-      .bind((user as any).id)
-      .all();
-
-    const followersCount = await db
-      .prepare("SELECT COUNT(*) as count FROM follows WHERE following_id = ?")
-      .bind((user as any).id)
-      .first();
-
-    const followingCount = await db
-      .prepare("SELECT COUNT(*) as count FROM follows WHERE follower_id = ?")
-      .bind((user as any).id)
-      .first();
-
     return {
       user: {
-        ...(user as any),
-        createdAt: new Date((user as any).createdAt * 1000).toISOString(),
+        id: user.id,
+        username: user.username,
+        avatarUrl: user.avatarUrl,
+        bio: user.bio,
+        createdAt: user.createdAt.toISOString(),
       },
-      posts: postsResult.results.map((p: any) => ({
-        ...p,
-        createdAt: new Date(p.createdAt * 1000).toISOString(),
+      posts: user.posts.map((p) => ({
+        id: p.id,
+        title: p.title,
+        description: p.description,
+        audioUrl: p.audioUrl,
+        latitude: p.latitude,
+        longitude: p.longitude,
+        location: p.location,
+        createdAt: p.createdAt.toISOString(),
       })),
-      followersCount: (followersCount as any)?.count || 0,
-      followingCount: (followingCount as any)?.count || 0,
+      followersCount: user.followers.length,
+      followingCount: user.following.length,
     };
   });
 
