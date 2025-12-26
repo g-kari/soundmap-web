@@ -24,7 +24,8 @@ export default function Map({ posts }: MapProps) {
     let map: any = null;
 
     const initMap = async () => {
-      const L = await import("leaflet");
+      const leafletModule = await import("leaflet");
+      const L = leafletModule.default;
 
       map = L.map("map").setView([35.6762, 139.6503], 10);
 
