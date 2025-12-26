@@ -13,4 +13,9 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
+  build: {
+    rollupOptions: {
+      external: ["@prisma/client"],
+    },
+  },
 });
