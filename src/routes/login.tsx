@@ -11,11 +11,7 @@ const loginFn = createServerFn({ method: "POST" }).handler(async ({ data, contex
     const env = await getEnvAsync(context);
 
     if (!env.DATABASE) {
-      // デバッグ: コンテキストの構造を確認
-      const contextKeys = context ? Object.keys(context) : [];
-      const cloudflareKeys = context?.cloudflare ? Object.keys(context.cloudflare) : [];
-      console.error("Login: DATABASE not found. Context keys:", contextKeys, "Cloudflare keys:", cloudflareKeys);
-      return { error: `データベース接続が利用できません (context: ${contextKeys.join(",") || "empty"}, cf: ${cloudflareKeys.join(",") || "none"})` };
+      return { error: "データベース接続が利用できません" };
     }
     
     const db = env.DATABASE;
