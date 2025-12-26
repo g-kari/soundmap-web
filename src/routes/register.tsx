@@ -3,12 +3,17 @@ import { createServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { generateId, getCurrentTimestamp } from "~/utils/db.server";
 import bcrypt from "bcryptjs";
+import { getEvent } from "vinxi/http";
+import { createSession, createSessionCookie } from "~/utils/session";
 
 const registerFn = createServerFn({ method: "POST" })
-  .validator((data: { email: string; username: string; password: string }) => data)
+  .validator(
+    (data: { email: string; username: string; password: string }) => data
+  )
   .handler(async ({ data, context }) => {
     const { email, username, password } = data;
-    const db = (context as any).cloudflare.env.DATABASE;
+    const env = (context as any).cloudflare.env;
+    const db = env.DATABASE;
 
     // Check if user exists
     const existingUser = await db
@@ -17,7 +22,9 @@ const registerFn = createServerFn({ method: "POST" })
       .first();
 
     if (existingUser) {
-      return { error: "このメールアドレスまたはユーザー名は既に使用されています" };
+      return {
+        error: "このメールアドレスまたはユーザー名は既に使用されています",
+      };
     }
 
     // Create user
@@ -31,6 +38,17 @@ const registerFn = createServerFn({ method: "POST" })
       )
       .bind(userId, email, username, passwordHash, now, now)
       .run();
+
+    // Create session after registration
+    const sessionToken = await createSession(env.SESSION_KV, {
+      userId,
+      username,
+      email,
+    });
+
+    // Set session cookie
+    const event = getEvent();
+    event.node.res.setHeader("Set-Cookie", createSessionCookie(sessionToken));
 
     return { success: true, userId };
   });
@@ -59,7 +77,7 @@ function Register() {
       if (result.error) {
         setError(result.error);
       } else {
-        navigate({ to: "/login" });
+        navigate({ to: "/timeline" });
       }
     } catch (err) {
       setError("登録に失敗しました");
