@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   username TEXT UNIQUE NOT NULL,
-  password TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
   bio TEXT,
   avatar_url TEXT,
   created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
