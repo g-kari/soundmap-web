@@ -10,6 +10,7 @@ export default defineConfig({
     cloudflare({
       persistState: true,
       configPath: "./wrangler.jsonc",
+      viteEnvironment: { name: "ssr" },
     }),
     react(),
     tsconfigPaths(),
