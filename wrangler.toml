@@ -10,7 +10,7 @@ main = "./build/server/index.js"
 [[d1_databases]]
 binding = "DATABASE"
 database_name = "soundmap-db"
-database_id = "your-database-id-here"
+database_id = "03d5131e-beb3-4142-9f44-4e430921836f"
 
 # KV for sessions
 [[kv_namespaces]]
