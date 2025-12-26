@@ -1,0 +1,22 @@
+name = "soundmap-web"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "./build/client"
+
+# Custom domain: soundmap.0g0.xyz
+# Configure this in Cloudflare Dashboard → Pages → Custom domains
+
+# D1 Database
+[[d1_databases]]
+binding = "DATABASE"
+database_name = "soundmap-db"
+database_id = "your-database-id-here"
+
+# KV for sessions
+[[kv_namespaces]]
+binding = "SESSION_KV"
+id = "your-kv-namespace-id-here"
+
+# R2 for audio files
+[[r2_buckets]]
+binding = "AUDIO_BUCKET"
+bucket_name = "soundmap-audio"
