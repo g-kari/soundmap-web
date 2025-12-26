@@ -6,24 +6,16 @@ import {
 import { createServerFn } from "@tanstack/react-start";
 import { useState, useRef } from "react";
 import { generateId, getCurrentTimestamp } from "~/utils/db.server";
-import { getEvent } from "vinxi/http";
-import { getSession, getSessionTokenFromCookie } from "~/utils/session";
+import { getCurrentSession } from "~/utils/session";
 import { uploadAudioToR2, getR2PublicUrl } from "~/utils/upload";
 
 const uploadAudioFn = createServerFn({ method: "POST" })
   .validator((formData: FormData) => formData)
   .handler(async ({ data: formData, context }) => {
     const env = (context as any).cloudflare.env;
-    const event = getEvent();
 
     // Get session
-    const cookieHeader = event.node.req.headers.cookie || "";
-    const sessionToken = getSessionTokenFromCookie(cookieHeader);
-    if (!sessionToken) {
-      return { error: "認証が必要です" };
-    }
-
-    const session = await getSession(env.SESSION_KV, sessionToken);
+    const session = await getCurrentSession(env.SESSION_KV);
     if (!session) {
       return { error: "認証が必要です" };
     }
@@ -77,16 +69,9 @@ const createPostFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const env = (context as any).cloudflare.env;
     const db = env.DATABASE;
-    const event = getEvent();
 
     // Get session
-    const cookieHeader = event.node.req.headers.cookie || "";
-    const sessionToken = getSessionTokenFromCookie(cookieHeader);
-    if (!sessionToken) {
-      return { error: "認証が必要です" };
-    }
-
-    const session = await getSession(env.SESSION_KV, sessionToken);
+    const session = await getCurrentSession(env.SESSION_KV);
     if (!session) {
       return { error: "認証が必要です" };
     }
@@ -119,15 +104,7 @@ const createPostFn = createServerFn({ method: "POST" })
 const checkAuthFn = createServerFn({ method: "GET" }).handler(
   async ({ context }) => {
     const env = (context as any).cloudflare.env;
-    const event = getEvent();
-
-    const cookieHeader = event.node.req.headers.cookie || "";
-    const sessionToken = getSessionTokenFromCookie(cookieHeader);
-    if (!sessionToken) {
-      return { authenticated: false };
-    }
-
-    const session = await getSession(env.SESSION_KV, sessionToken);
+    const session = await getCurrentSession(env.SESSION_KV);
     return { authenticated: !!session };
   }
 );

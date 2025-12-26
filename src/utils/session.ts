@@ -1,4 +1,9 @@
 import type { Env } from "../../load-context";
+import {
+  setCookie as tanstackSetCookie,
+  getCookie as tanstackGetCookie,
+  deleteCookie as tanstackDeleteCookie,
+} from "@tanstack/react-start/server";
 
 const SESSION_COOKIE_NAME = "session_id";
 const SESSION_EXPIRY_SECONDS = 60 * 60 * 24 * 7; // 7 days
@@ -31,7 +36,7 @@ export async function createSession(
 }
 
 // Get session data from KV
-export async function getSession(
+export async function getSessionFromKV(
   kv: KVNamespace,
   sessionToken: string
 ): Promise<SessionData | null> {
@@ -45,57 +50,60 @@ export async function getSession(
 }
 
 // Delete session from KV
-export async function deleteSession(
+export async function deleteSessionFromKV(
   kv: KVNamespace,
   sessionToken: string
 ): Promise<void> {
   await kv.delete(sessionToken);
 }
 
-// Parse session token from cookie header
-export function getSessionTokenFromCookie(
-  cookieHeader: string | null
-): string | null {
-  if (!cookieHeader) return null;
-  const cookies = cookieHeader.split(";").map((c) => c.trim());
-  for (const cookie of cookies) {
-    const [name, value] = cookie.split("=");
-    if (name === SESSION_COOKIE_NAME && value) {
-      return value;
-    }
-  }
-  return null;
+// Set session cookie using TanStack Start API
+export function setSessionCookie(sessionToken: string): void {
+  tanstackSetCookie(SESSION_COOKIE_NAME, sessionToken, {
+    path: "/",
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    maxAge: SESSION_EXPIRY_SECONDS,
+  });
 }
 
-// Create Set-Cookie header for session
-export function createSessionCookie(sessionToken: string): string {
-  return `${SESSION_COOKIE_NAME}=${sessionToken}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${SESSION_EXPIRY_SECONDS}`;
+// Get session token from cookie using TanStack Start API
+export function getSessionCookie(): string | undefined {
+  return tanstackGetCookie(SESSION_COOKIE_NAME);
 }
 
-// Create Set-Cookie header for logout (expire the cookie)
-export function createLogoutCookie(): string {
-  return `${SESSION_COOKIE_NAME}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
+// Clear session cookie using TanStack Start API
+export function clearSessionCookie(): void {
+  tanstackDeleteCookie(SESSION_COOKIE_NAME, {
+    path: "/",
+  });
 }
 
-// Get session from request context
-export async function getSessionFromRequest(
-  env: Env,
-  request: Request
+// Get session from current request
+export async function getCurrentSession(
+  kv: KVNamespace
 ): Promise<SessionData | null> {
-  const cookieHeader = request.headers.get("Cookie");
-  const sessionToken = getSessionTokenFromCookie(cookieHeader);
+  const sessionToken = getSessionCookie();
   if (!sessionToken) return null;
-  return getSession(env.SESSION_KV, sessionToken);
+  return getSessionFromKV(kv, sessionToken);
 }
 
-// Require authenticated session (throws if not authenticated)
-export async function requireSession(
-  env: Env,
-  request: Request
-): Promise<SessionData> {
-  const session = await getSessionFromRequest(env, request);
-  if (!session) {
-    throw new Error("認証が必要です");
+// Create session and set cookie
+export async function createAndSetSession(
+  kv: KVNamespace,
+  data: SessionData
+): Promise<string> {
+  const sessionToken = await createSession(kv, data);
+  setSessionCookie(sessionToken);
+  return sessionToken;
+}
+
+// Delete session and clear cookie
+export async function deleteCurrentSession(kv: KVNamespace): Promise<void> {
+  const sessionToken = getSessionCookie();
+  if (sessionToken) {
+    await deleteSessionFromKV(kv, sessionToken);
   }
-  return session;
+  clearSessionCookie();
 }

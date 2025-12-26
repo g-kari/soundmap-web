@@ -2,8 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import bcrypt from "bcryptjs";
-import { getEvent } from "vinxi/http";
-import { createSession, createSessionCookie } from "~/utils/session";
+import { createAndSetSession } from "~/utils/session";
 
 const loginFn = createServerFn({ method: "POST" })
   .validator((data: { email: string; password: string }) => data)
@@ -28,16 +27,12 @@ const loginFn = createServerFn({ method: "POST" })
       return { error: "メールアドレスまたはパスワードが間違っています" };
     }
 
-    // Create session
-    const sessionToken = await createSession(env.SESSION_KV, {
+    // Create session and set cookie
+    await createAndSetSession(env.SESSION_KV, {
       userId: user.id,
       username: user.username,
       email: user.email,
     });
-
-    // Set session cookie
-    const event = getEvent();
-    event.node.res.setHeader("Set-Cookie", createSessionCookie(sessionToken));
 
     return { success: true, userId: user.id };
   });

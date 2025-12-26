@@ -3,8 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { generateId, getCurrentTimestamp } from "~/utils/db.server";
 import bcrypt from "bcryptjs";
-import { getEvent } from "vinxi/http";
-import { createSession, createSessionCookie } from "~/utils/session";
+import { createAndSetSession } from "~/utils/session";
 
 const registerFn = createServerFn({ method: "POST" })
   .validator(
@@ -39,16 +38,12 @@ const registerFn = createServerFn({ method: "POST" })
       .bind(userId, email, username, passwordHash, now, now)
       .run();
 
-    // Create session after registration
-    const sessionToken = await createSession(env.SESSION_KV, {
+    // Create session and set cookie after registration
+    await createAndSetSession(env.SESSION_KV, {
       userId,
       username,
       email,
     });
-
-    // Set session cookie
-    const event = getEvent();
-    event.node.res.setHeader("Set-Cookie", createSessionCookie(sessionToken));
 
     return { success: true, userId };
   });

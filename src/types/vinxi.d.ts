@@ -1,18 +1,3 @@
-declare module "vinxi/http" {
-  export function getEvent(): {
-    node: {
-      req: {
-        headers: {
-          cookie?: string;
-        };
-      };
-      res: {
-        setHeader(name: string, value: string): void;
-      };
-    };
-  };
-}
-
 declare module "vinxi/types/client" {}
 
 declare module "@tanstack/react-start/router-manifest" {

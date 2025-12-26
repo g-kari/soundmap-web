@@ -9,25 +9,12 @@ import {
 import { createServerFn } from "@tanstack/react-start";
 import type { ReactNode } from "react";
 import appCss from "~/styles/app.css?url";
-import { getEvent } from "vinxi/http";
-import {
-  getSession,
-  getSessionTokenFromCookie,
-  type SessionData,
-} from "~/utils/session";
+import { getCurrentSession, type SessionData } from "~/utils/session";
 
 const getSessionFn = createServerFn({ method: "GET" }).handler(
   async ({ context }) => {
     const env = (context as any).cloudflare.env;
-    const event = getEvent();
-    const cookieHeader = event.node.req.headers.cookie || "";
-    const sessionToken = getSessionTokenFromCookie(cookieHeader);
-
-    if (!sessionToken) {
-      return { user: null };
-    }
-
-    const session = await getSession(env.SESSION_KV, sessionToken);
+    const session = await getCurrentSession(env.SESSION_KV);
     return { user: session };
   }
 );
