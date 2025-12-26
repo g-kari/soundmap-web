@@ -17,7 +17,7 @@
 
 ## 技術スタック
 
-- **フレームワーク**: Remix
+- **フレームワーク**: Remix 2.x (React Router v7 準拠)
 - **言語**: TypeScript
 - **プラットフォーム**: Cloudflare Pages
 - **データベース**: Cloudflare D1 (SQLite)
@@ -26,6 +26,13 @@
 - **スタイリング**: CSS
 - **地図**: Leaflet
 - **認証**: セッションベース認証 (Cookie)
+
+### React Router v7 対応
+
+このプロジェクトは React Router v7 への移行準備が完了しています：
+- ✅ 全ての future flags が有効化済み
+- ✅ ビルド警告なし
+- ⏳ パッケージの完全移行は任意のタイミングで実行可能
 
 ## Cloudflare Pagesでのセットアップ
 
@@ -54,6 +61,10 @@ npx wrangler d1 create soundmap-db
 #### KVネームスペースの作成
 
 ```bash
+# Wrangler v3+ の場合
+npx wrangler kv namespace create SESSION_KV
+
+# Wrangler v2 の場合（レガシー）
 npx wrangler kv:namespace create SESSION_KV
 ```
 
@@ -190,47 +201,44 @@ Cloudflare Pagesの環境変数として以下を設定：
 - ✅ メイン: `root.tsx`, `_index.tsx`, `timeline.tsx`, `map.tsx`
 - ✅ アクション: `post.$postId.like.tsx`, `post.$postId.comment.tsx`, `profile.$username.follow.tsx`
 
-#### ⚠️ 手動更新が必要なファイル
+#### ⚠️ D1 移行待ちの機能（一時的に無効化）
 
-以下の3ファイルは複雑なD1クエリが必要なため、手動更新が推奨されます：
+以下の3つのルートは Prisma から D1 への移行が未完了のため、一時的にスタブ化されています（503 エラーを返します）：
 
 1. **`app/routes/post.new.tsx`** - 新規投稿
-   - R2へのファイルアップロード (`uploadAudioFile`)
-   - D1へのINSERT
+   - TODO: R2へのファイルアップロード + D1 INSERT クエリの実装
 
 2. **`app/routes/post.$postId.tsx`** - 投稿詳細
-   - 複数テーブルのJOINクエリ
-   - いいね・コメントの集計
+   - TODO: 複数テーブルの JOIN クエリ + いいね・コメントの集計
 
 3. **`app/routes/profile.$username.tsx`** - ユーザープロフィール
-   - ユーザー情報と投稿一覧の取得
-   - フォロー状態の確認
+   - TODO: ユーザー情報と投稿一覧の取得 + フォロー状態の確認
 
-#### 変更方法
+#### 移行方法（今後の作業）
 
-各ファイルで以下の変更を行ってください：
+各ファイルを以下のように変更してください：
 
 ```typescript
-// Before (Node.js)
-import { json } from "@remix-run/node";
-import { prisma } from "~/utils/db.server";
+// Before (Prisma - 現在スタブ化)
+import { json } from "@remix-run/cloudflare";
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const posts = await prisma.post.findMany({...});
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  throw new Response("This feature is being migrated to Cloudflare D1. Coming soon!", { status: 503 });
 }
 
-// After (Cloudflare)
+// After (D1 - 実装予定)
 import { json } from "@remix-run/cloudflare";
 import { getDB } from "~/utils/db.server.cloudflare";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = getDB(context);
-  const result = await db.prepare("SELECT * FROM posts").all();
+  const result = await db.prepare("SELECT * FROM posts WHERE user_id = ?").bind(userId).all();
   const posts = result.results;
+  return json({ posts });
 }
 ```
 
-詳細は `app/routes/timeline.tsx` を参考にしてください。
+参考実装: `app/routes/timeline.tsx`, `app/routes/post.$postId.like.tsx`, `app/routes/post.$postId.comment.tsx`
 
 ## ライセンス
 
