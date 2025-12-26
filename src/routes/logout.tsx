@@ -1,11 +1,11 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { deleteCurrentSession } from "~/utils/session";
-import { getEnv } from "~/utils/db.server";
+import { getEnvAsync } from "~/utils/db.server";
 
 const logoutFn = createServerFn({ method: "POST" }).handler(
   async ({ context }) => {
-    const env = getEnv(context);
+    const env = await getEnvAsync(context);
 
     // Delete session from KV and clear cookie
     await deleteCurrentSession(env.SESSION_KV);
