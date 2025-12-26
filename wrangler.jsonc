@@ -3,7 +3,10 @@
   "name": "soundmap-web",
   "compatibility_date": "2025-01-01",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry",
+  "main": "dist/server/server.js",
+  "assets": {
+    "directory": "dist/client"
+  },
   "observability": { "enabled": true,
     "logs": {
       "enabled": true,

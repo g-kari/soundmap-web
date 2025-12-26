@@ -6,12 +6,11 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   plugins: [
+    tanstackStart(),
     cloudflare({
-      viteEnvironment: { name: "ssr" },
       persistState: true,
       configPath: "./wrangler.jsonc",
     }),
-    tanstackStart(),
     react(),
     tsconfigPaths(),
   ],
