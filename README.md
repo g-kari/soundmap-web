@@ -183,11 +183,54 @@ Cloudflare Pagesの環境変数として以下を設定：
 
 ### 開発時の注意
 
-現在のコードは2つのバージョンが共存しています：
-- `*.server.ts` - Node.js環境用（レガシー）
-- `*.cloudflare.ts` - Cloudflare環境用（推奨）
+#### ✅ Cloudflare対応完了ファイル
 
-Cloudflare Pagesで実行する場合は、`.cloudflare.ts` ファイルを使用するようにルートを更新する必要があります。
+以下のルートは既にCloudflare対応済みです：
+- ✅ 認証: `login.tsx`, `register.tsx`, `logout.tsx`
+- ✅ メイン: `root.tsx`, `_index.tsx`, `timeline.tsx`, `map.tsx`
+- ✅ アクション: `post.$postId.like.tsx`, `post.$postId.comment.tsx`, `profile.$username.follow.tsx`
+
+#### ⚠️ 手動更新が必要なファイル
+
+以下の3ファイルは複雑なD1クエリが必要なため、手動更新が推奨されます：
+
+1. **`app/routes/post.new.tsx`** - 新規投稿
+   - R2へのファイルアップロード (`uploadAudioFile`)
+   - D1へのINSERT
+
+2. **`app/routes/post.$postId.tsx`** - 投稿詳細
+   - 複数テーブルのJOINクエリ
+   - いいね・コメントの集計
+
+3. **`app/routes/profile.$username.tsx`** - ユーザープロフィール
+   - ユーザー情報と投稿一覧の取得
+   - フォロー状態の確認
+
+#### 変更方法
+
+各ファイルで以下の変更を行ってください：
+
+```typescript
+// Before (Node.js)
+import { json } from "@remix-run/node";
+import { prisma } from "~/utils/db.server";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const posts = await prisma.post.findMany({...});
+}
+
+// After (Cloudflare)
+import { json } from "@remix-run/cloudflare";
+import { getDB } from "~/utils/db.server.cloudflare";
+
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  const db = getDB(context);
+  const result = await db.prepare("SELECT * FROM posts").all();
+  const posts = result.results;
+}
+```
+
+詳細は `app/routes/timeline.tsx` を参考にしてください。
 
 ## ライセンス
 
