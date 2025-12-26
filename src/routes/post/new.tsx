@@ -8,6 +8,7 @@ import { useState, useRef } from "react";
 import { generateId, getCurrentTimestamp } from "~/utils/db.server";
 import { getCurrentSession } from "~/utils/session";
 import { uploadAudioToR2, getR2PublicUrl } from "~/utils/upload";
+import { checkRateLimit } from "~/utils/rate-limit";
 
 const uploadAudioFn = createServerFn({ method: "POST" })
   .validator((formData: FormData) => formData)
@@ -18,6 +19,23 @@ const uploadAudioFn = createServerFn({ method: "POST" })
     const session = await getCurrentSession(env.SESSION_KV);
     if (!session) {
       return { error: "認証が必要です" };
+    }
+
+    // Rate limiting: 10 uploads per hour per user
+    const rateLimit = await checkRateLimit(env.SESSION_KV, `upload:${session.userId}`, {
+      maxRequests: 10,
+      windowMs: 60 * 60 * 1000, // 1 hour
+    });
+
+    if (!rateLimit.allowed) {
+      const resetDate = new Date(rateLimit.resetAt);
+      const resetTime = resetDate.toLocaleTimeString("ja-JP", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      return {
+        error: `アップロード回数の上限に達しました。${resetTime}以降に再度お試しください。`,
+      };
     }
 
     const audioFile = formData.get("audio") as File | null;
