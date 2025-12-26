@@ -1,7 +1,6 @@
 name = "soundmap-web"
 compatibility_date = "2024-01-01"
 pages_build_output_dir = "./build/client"
-main = "./build/server/index.js"
 
 # Custom domain: soundmap.0g0.xyz
 # Configure this in Cloudflare Dashboard → Pages → Custom domains
