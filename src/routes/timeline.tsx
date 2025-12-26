@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { getEnv } from "~/utils/db.server";
+import { getEnvAsync } from "~/utils/db.server";
 
 const getTimelineFn = createServerFn({ method: "GET" }).handler(
   async ({ context }) => {
-    const env = getEnv(context);
+    const env = await getEnvAsync(context);
     
     if (!env.DATABASE) {
       console.error("DATABASE binding is not available");

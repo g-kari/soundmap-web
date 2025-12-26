@@ -5,14 +5,14 @@ import {
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useState, useRef } from "react";
-import { generateId, getCurrentTimestamp, getEnv } from "~/utils/db.server";
+import { generateId, getCurrentTimestamp, getEnvAsync } from "~/utils/db.server";
 import { getCurrentSession } from "~/utils/session";
 import { uploadAudioToR2, getR2PublicUrl } from "~/utils/upload";
 import { checkRateLimit, UPLOAD_RATE_LIMIT } from "~/utils/rate-limit";
 import { logger } from "~/utils/logger";
 
 const uploadAudioFn = createServerFn({ method: "POST" }).handler(async ({ data: formData, context }: { data: FormData; context: any }) => {
-    const env = getEnv(context);
+    const env = await getEnvAsync(context);
 
     if (!env.SESSION_KV || !env.AUDIO_BUCKET) {
       return { error: "Cloudflareバインディングが利用できません" };
@@ -89,7 +89,7 @@ const createPostFn = createServerFn({ method: "POST" }).handler(async ({ data, c
       longitude?: number;
       location?: string;
     }; context: any }) => {
-    const env = getEnv(context);
+    const env = await getEnvAsync(context);
     
     if (!env.DATABASE || !env.SESSION_KV) {
       return { error: "データベース接続が利用できません" };
@@ -130,7 +130,7 @@ const createPostFn = createServerFn({ method: "POST" }).handler(async ({ data, c
 
 const checkAuthFn = createServerFn({ method: "GET" }).handler(
   async ({ context }) => {
-    const env = getEnv(context);
+    const env = await getEnvAsync(context);
     
     if (!env.SESSION_KV) {
       return { authenticated: false };

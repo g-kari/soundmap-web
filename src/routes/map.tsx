@@ -1,13 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { Suspense, lazy } from "react";
-import { getEnv } from "~/utils/db.server";
+import { getEnvAsync } from "~/utils/db.server";
 
 const MapComponent = lazy(() => import("~/components/Map"));
 
 const getMapPostsFn = createServerFn({ method: "GET" }).handler(
   async ({ context }) => {
-    const env = getEnv(context);
+    const env = await getEnvAsync(context);
     
     if (!env.DATABASE) {
       console.error("DATABASE binding is not available");
