@@ -224,20 +224,14 @@ function NewPost() {
       return;
     }
 
-    if (latitude === null || longitude === null) {
-      setError("位置情報を取得してください（SoundMapは位置情報と連動したSNSです）");
-      setIsLoading(false);
-      return;
-    }
-
     try {
       const result = await createPostFn({
         data: {
           title,
           description: description || undefined,
           audioUrl,
-          latitude,
-          longitude,
+          latitude: latitude || undefined,
+          longitude: longitude || undefined,
           location: location || undefined,
         },
       });
@@ -323,7 +317,7 @@ function NewPost() {
             />
           </div>
           <div className="form-group">
-            <label className="form-label">位置情報 *</label>
+            <label className="form-label">位置情報</label>
             <button
               type="button"
               className="button button-secondary"
@@ -332,13 +326,9 @@ function NewPost() {
             >
               {isLocating ? "取得中..." : "現在地を取得"}
             </button>
-            {latitude && longitude ? (
+            {latitude && longitude && (
               <p className="form-hint success">
                 緯度: {latitude.toFixed(6)}, 経度: {longitude.toFixed(6)}
-              </p>
-            ) : (
-              <p className="form-hint">
-                投稿には位置情報が必要です
               </p>
             )}
           </div>
