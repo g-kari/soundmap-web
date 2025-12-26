@@ -3,55 +3,65 @@ import { createServerFn } from "@tanstack/react-start";
 
 const getTimelineFn = createServerFn({ method: "GET" }).handler(
   async ({ context }) => {
-    const db = (context as any).cloudflare.env.DATABASE;
+    try {
+      const db = (context as any).cloudflare?.env?.DATABASE;
+      if (!db) {
+        console.error("Database not available");
+        return { posts: [], error: "Database not available" };
+      }
 
-    // Get posts from all users for now
-    const postsResult = await db
-      .prepare(`
-        SELECT
-          p.id,
-          p.user_id as userId,
-          p.title,
-          p.description,
-          p.audio_url as audioUrl,
-          p.latitude,
-          p.longitude,
-          p.location,
-          p.created_at as createdAt,
-          u.id as user_id,
-          u.username as user_username,
-          u.avatar_url as user_avatarUrl,
-          (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count,
-          (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comments_count
-        FROM posts p
-        JOIN users u ON p.user_id = u.id
-        ORDER BY p.created_at DESC
-        LIMIT 50
-      `)
-      .all();
+      // Get posts from all users for now
+      const postsResult = await db
+        .prepare(`
+          SELECT
+            p.id,
+            p.user_id as userId,
+            p.title,
+            p.description,
+            p.audio_url as audioUrl,
+            p.latitude,
+            p.longitude,
+            p.location,
+            p.created_at as createdAt,
+            u.id as user_id,
+            u.username as user_username,
+            u.avatar_url as user_avatarUrl,
+            (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count,
+            (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comments_count
+          FROM posts p
+          JOIN users u ON p.user_id = u.id
+          ORDER BY p.created_at DESC
+          LIMIT 50
+        `)
+        .all();
 
-    const posts = postsResult.results.map((p: any) => ({
-      id: p.id,
-      userId: p.userId,
-      title: p.title,
-      description: p.description,
-      audioUrl: p.audioUrl,
-      latitude: p.latitude,
-      longitude: p.longitude,
-      location: p.location,
-      createdAt: new Date(p.createdAt * 1000).toISOString(),
-      user: {
-        id: p.user_id,
-        username: p.user_username,
-        avatarUrl: p.user_avatarUrl,
-      },
-      _count: {
-        likes: p.likes_count || 0,
-        comments: p.comments_count || 0,
-      },
-    }));
+      const results = postsResult?.results || [];
+      const posts = results.map((p: any) => ({
+        id: p.id,
+        userId: p.userId,
+        title: p.title,
+        description: p.description,
+        audioUrl: p.audioUrl,
+        latitude: p.latitude,
+        longitude: p.longitude,
+        location: p.location,
+        createdAt: p.createdAt ? new Date(p.createdAt * 1000).toISOString() : new Date().toISOString(),
+        user: {
+          id: p.user_id,
+          username: p.user_username,
+          avatarUrl: p.user_avatarUrl,
+        },
+        _count: {
+          likes: p.likes_count || 0,
+          comments: p.comments_count || 0,
+        },
+      }));
 
-    return { posts };
+      return { posts };
+    } catch (error) {
+      console.error("Error fetching timeline:", error);
+      return { posts: [], error: "Failed to fetch timeline" };
+    }
   }
 );
 

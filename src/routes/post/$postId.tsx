@@ -4,71 +4,83 @@ import { createServerFn } from "@tanstack/react-start";
 const getPostFn = createServerFn({ method: "GET" })
   .validator((data: { postId: string }) => data)
   .handler(async ({ data, context }) => {
-    const db = (context as any).cloudflare.env.DATABASE;
+    try {
+      const db = (context as any).cloudflare?.env?.DATABASE;
+      if (!db) {
+        console.error("Database not available");
+        return { post: null, comments: [], likesCount: 0, error: "Database not available" };
+      }
 
-    const post = await db
-      .prepare(
-        `SELECT
-          p.id,
-          p.user_id as userId,
-          p.title,
-          p.description,
-          p.audio_url as audioUrl,
-          p.latitude,
-          p.longitude,
-          p.location,
-          p.created_at as createdAt,
-          u.id as user_id,
-          u.username as user_username,
-          u.avatar_url as user_avatarUrl
-        FROM posts p
-        JOIN users u ON p.user_id = u.id
-        WHERE p.id = ?`
-      )
-      .bind(data.postId)
-      .first();
+      const post = await db
+        .prepare(
+          `SELECT
+            p.id,
+            p.user_id as userId,
+            p.title,
+            p.description,
+            p.audio_url as audioUrl,
+            p.latitude,
+            p.longitude,
+            p.location,
+            p.created_at as createdAt,
+            u.id as user_id,
+            u.username as user_username,
+            u.avatar_url as user_avatarUrl
+          FROM posts p
+          JOIN users u ON p.user_id = u.id
+          WHERE p.id = ?`
+        )
+        .bind(data.postId)
+        .first();
 
-    if (!post) {
-      return { post: null, comments: [], likesCount: 0 };
-    }
+      if (!post) {
+        return { post: null, comments: [], likesCount: 0 };
+      }
 
-    const commentsResult = await db
-      .prepare(
-        `SELECT
-          c.id,
-          c.content,
-          c.created_at as createdAt,
-          u.username,
-          u.avatar_url as avatarUrl
-        FROM comments c
-        JOIN users u ON c.user_id = u.id
-        WHERE c.post_id = ?
-        ORDER BY c.created_at DESC`
-      )
-      .bind(data.postId)
-      .all();
+      const commentsResult = await db
+        .prepare(
+          `SELECT
+            c.id,
+            c.content,
+            c.created_at as createdAt,
+            u.username,
+            u.avatar_url as avatarUrl
+          FROM comments c
+          JOIN users u ON c.user_id = u.id
+          WHERE c.post_id = ?
+          ORDER BY c.created_at DESC`
+        )
+        .bind(data.postId)
+        .all();
 
-    const likesCount = await db
-      .prepare("SELECT COUNT(*) as count FROM likes WHERE post_id = ?")
-      .bind(data.postId)
-      .first();
+      const likesCount = await db
+        .prepare("SELECT COUNT(*) as count FROM likes WHERE post_id = ?")
+        .bind(data.postId)
+        .first();
 
-    return {
-      post: {
-        ...post,
-        createdAt: new Date((post as any).createdAt * 1000).toISOString(),
-        user: {
-          id: (post as any).user_id,
-          username: (post as any).user_username,
-          avatarUrl: (post as any).user_avatarUrl,
+      const postData = post as any;
+      const comments = commentsResult?.results || [];
+
+      return {
+        post: {
+          ...post,
+          createdAt: postData.createdAt ? new Date(postData.createdAt * 1000).toISOString() : new Date().toISOString(),
+          user: {
+            id: postData.user_id,
+            username: postData.user_username,
+            avatarUrl: postData.user_avatarUrl,
+          },
         },
-      },
-      comments: commentsResult.results.map((c: any) => ({
-        ...c,
-        createdAt: new Date(c.createdAt * 1000).toISOString(),
-      })),
-      likesCount: (likesCount as any)?.count || 0,
-    };
+        comments: comments.map((c: any) => ({
+          ...c,
+          createdAt: c.createdAt ? new Date(c.createdAt * 1000).toISOString() : new Date().toISOString(),
+        })),
+        likesCount: (likesCount as any)?.count || 0,
+      };
+    } catch (error) {
+      console.error("Error fetching post:", error);
+      return { post: null, comments: [], likesCount: 0, error: "Failed to fetch post" };
+    }
   });
 
 export const Route = createFileRoute("/post/$postId")({

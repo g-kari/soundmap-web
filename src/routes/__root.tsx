@@ -13,9 +13,18 @@ import { getCurrentSession, type SessionData } from "~/utils/session";
 
 const getSessionFn = createServerFn({ method: "GET" }).handler(
   async ({ context }) => {
-    const env = (context as any).cloudflare.env;
-    const session = await getCurrentSession(env.SESSION_KV);
-    return { user: session };
+    try {
+      const env = (context as any).cloudflare?.env;
+      if (!env?.SESSION_KV) {
+        console.error("SESSION_KV not available");
+        return { user: null };
+      }
+      const session = await getCurrentSession(env.SESSION_KV);
+      return { user: session };
+    } catch (error) {
+      console.error("Error getting session:", error);
+      return { user: null };
+    }
   }
 );
 

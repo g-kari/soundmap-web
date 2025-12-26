@@ -14,68 +14,77 @@ import { logger } from "~/utils/logger";
 const uploadAudioFn = createServerFn({ method: "POST" })
   .validator((formData: FormData) => formData)
   .handler(async ({ data: formData, context }) => {
-    const env = (context as any).cloudflare.env;
-
-    // Get session
-    const session = await getCurrentSession(env.SESSION_KV);
-    if (!session) {
-      return { error: "認証が必要です" };
-    }
-
-    // Rate limiting: 10 uploads per hour per user
-    const rateLimit = await checkRateLimit(
-      env.SESSION_KV,
-      `upload:${session.userId}`,
-      UPLOAD_RATE_LIMIT
-    );
-
-    if (!rateLimit.allowed) {
-      const resetDate = new Date(rateLimit.resetAt);
-      const resetTime = resetDate.toLocaleTimeString("ja-JP", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-      return {
-        error: `アップロード回数の上限に達しました。${resetTime}以降に再度お試しください。`,
-      };
-    }
-
-    const audioFile = formData.get("audio") as File | null;
-    if (!audioFile || audioFile.size === 0) {
-      return { error: "音声ファイルを選択してください" };
-    }
-
-    // Validate file type
-    const allowedTypes = [
-      "audio/webm",
-      "audio/mpeg",
-      "audio/wav",
-      "audio/ogg",
-      "audio/mp4",
-      "audio/m4a",
-    ];
-    if (!allowedTypes.includes(audioFile.type)) {
-      return { error: "対応していない音声形式です" };
-    }
-
-    // Validate file size (max 50MB)
-    const maxSize = 50 * 1024 * 1024;
-    if (audioFile.size > maxSize) {
-      return { error: "ファイルサイズが大きすぎます（最大50MB）" };
-    }
-
     try {
-      const key = await uploadAudioToR2(env.AUDIO_BUCKET, audioFile);
-      const audioUrl = getR2PublicUrl(key);
-      return { success: true, audioUrl, key };
-    } catch (err) {
-      logger.error("Upload error", {
-        error: err instanceof Error ? err.message : String(err),
-        fileName: audioFile.name,
-        fileSize: audioFile.size,
-        fileType: audioFile.type,
-      });
-      return { error: "アップロードに失敗しました" };
+      const env = (context as any).cloudflare?.env;
+      if (!env?.SESSION_KV || !env?.AUDIO_BUCKET) {
+        console.error("SESSION_KV or AUDIO_BUCKET not available");
+        return { error: "サーバーエラーが発生しました" };
+      }
+
+      // Get session
+      const session = await getCurrentSession(env.SESSION_KV);
+      if (!session) {
+        return { error: "認証が必要です" };
+      }
+
+      // Rate limiting: 10 uploads per hour per user
+      const rateLimit = await checkRateLimit(
+        env.SESSION_KV,
+        `upload:${session.userId}`,
+        UPLOAD_RATE_LIMIT
+      );
+
+      if (!rateLimit.allowed) {
+        const resetDate = new Date(rateLimit.resetAt);
+        const resetTime = resetDate.toLocaleTimeString("ja-JP", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        return {
+          error: `アップロード回数の上限に達しました。${resetTime}以降に再度お試しください。`,
+        };
+      }
+
+      const audioFile = formData.get("audio") as File | null;
+      if (!audioFile || audioFile.size === 0) {
+        return { error: "音声ファイルを選択してください" };
+      }
+
+      // Validate file type
+      const allowedTypes = [
+        "audio/webm",
+        "audio/mpeg",
+        "audio/wav",
+        "audio/ogg",
+        "audio/mp4",
+        "audio/m4a",
+      ];
+      if (!allowedTypes.includes(audioFile.type)) {
+        return { error: "対応していない音声形式です" };
+      }
+
+      // Validate file size (max 50MB)
+      const maxSize = 50 * 1024 * 1024;
+      if (audioFile.size > maxSize) {
+        return { error: "ファイルサイズが大きすぎます（最大50MB）" };
+      }
+
+      try {
+        const key = await uploadAudioToR2(env.AUDIO_BUCKET, audioFile);
+        const audioUrl = getR2PublicUrl(key);
+        return { success: true, audioUrl, key };
+      } catch (err) {
+        logger.error("Upload error", {
+          error: err instanceof Error ? err.message : String(err),
+          fileName: audioFile.name,
+          fileSize: audioFile.size,
+          fileType: audioFile.type,
+        });
+        return { error: "アップロードに失敗しました" };
+      }
+    } catch (error) {
+      console.error("Error in uploadAudioFn:", error);
+      return { error: "アップロード処理中にエラーが発生しました" };
     }
   });
 
@@ -91,45 +100,63 @@ const createPostFn = createServerFn({ method: "POST" })
     }) => data
   )
   .handler(async ({ data, context }) => {
-    const env = (context as any).cloudflare.env;
-    const db = env.DATABASE;
+    try {
+      const env = (context as any).cloudflare?.env;
+      if (!env?.DATABASE || !env?.SESSION_KV) {
+        console.error("Database or SESSION_KV not available");
+        return { error: "サーバーエラーが発生しました" };
+      }
+      const db = env.DATABASE;
 
-    // Get session
-    const session = await getCurrentSession(env.SESSION_KV);
-    if (!session) {
-      return { error: "認証が必要です" };
+      // Get session
+      const session = await getCurrentSession(env.SESSION_KV);
+      if (!session) {
+        return { error: "認証が必要です" };
+      }
+
+      const postId = generateId();
+      const now = getCurrentTimestamp();
+
+      await db
+        .prepare(
+          `INSERT INTO posts (id, user_id, title, description, audio_url, latitude, longitude, location, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(
+          postId,
+          session.userId,
+          data.title,
+          data.description || null,
+          data.audioUrl,
+          data.latitude || null,
+          data.longitude || null,
+          data.location || null,
+          now,
+          now
+        )
+        .run();
+
+      return { success: true, postId };
+    } catch (error) {
+      console.error("Error creating post:", error);
+      return { error: "投稿の作成中にエラーが発生しました" };
     }
-
-    const postId = generateId();
-    const now = getCurrentTimestamp();
-
-    await db
-      .prepare(
-        `INSERT INTO posts (id, user_id, title, description, audio_url, latitude, longitude, location, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      )
-      .bind(
-        postId,
-        session.userId,
-        data.title,
-        data.description || null,
-        data.audioUrl,
-        data.latitude || null,
-        data.longitude || null,
-        data.location || null,
-        now,
-        now
-      )
-      .run();
-
-    return { success: true, postId };
   });
 
 const checkAuthFn = createServerFn({ method: "GET" }).handler(
   async ({ context }) => {
-    const env = (context as any).cloudflare.env;
-    const session = await getCurrentSession(env.SESSION_KV);
-    return { authenticated: !!session };
+    try {
+      const env = (context as any).cloudflare?.env;
+      if (!env?.SESSION_KV) {
+        console.error("SESSION_KV not available");
+        return { authenticated: false };
+      }
+      const session = await getCurrentSession(env.SESSION_KV);
+      return { authenticated: !!session };
+    } catch (error) {
+      console.error("Error checking auth:", error);
+      return { authenticated: false };
+    }
   }
 );
 

@@ -7,34 +7,43 @@ import { createAndSetSession } from "~/utils/session";
 const loginFn = createServerFn({ method: "POST" })
   .validator((data: { email: string; password: string }) => data)
   .handler(async ({ data, context }) => {
-    const { email, password } = data;
-    const env = (context as any).cloudflare.env;
-    const db = env.DATABASE;
+    try {
+      const { email, password } = data;
+      const env = (context as any).cloudflare?.env;
+      if (!env?.DATABASE || !env?.SESSION_KV) {
+        console.error("Database or SESSION_KV not available");
+        return { error: "サーバーエラーが発生しました" };
+      }
+      const db = env.DATABASE;
 
-    const user = await db
-      .prepare(
-        "SELECT id, email, password_hash, username FROM users WHERE email = ?"
-      )
-      .bind(email)
-      .first();
+      const user = await db
+        .prepare(
+          "SELECT id, email, password_hash, username FROM users WHERE email = ?"
+        )
+        .bind(email)
+        .first();
 
-    if (!user) {
-      return { error: "メールアドレスまたはパスワードが間違っています" };
+      if (!user) {
+        return { error: "メールアドレスまたはパスワードが間違っています" };
+      }
+
+      const isValid = await bcrypt.compare(password, user.password_hash);
+      if (!isValid) {
+        return { error: "メールアドレスまたはパスワードが間違っています" };
+      }
+
+      // Create session and set cookie
+      await createAndSetSession(env.SESSION_KV, {
+        userId: user.id,
+        username: user.username,
+        email: user.email,
+      });
+
+      return { success: true, userId: user.id };
+    } catch (error) {
+      console.error("Error during login:", error);
+      return { error: "ログイン中にエラーが発生しました" };
     }
-
-    const isValid = await bcrypt.compare(password, user.password_hash);
-    if (!isValid) {
-      return { error: "メールアドレスまたはパスワードが間違っています" };
-    }
-
-    // Create session and set cookie
-    await createAndSetSession(env.SESSION_KV, {
-      userId: user.id,
-      username: user.username,
-      email: user.email,
-    });
-
-    return { success: true, userId: user.id };
   });
 
 export const Route = createFileRoute("/login")({

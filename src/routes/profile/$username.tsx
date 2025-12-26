@@ -4,52 +4,65 @@ import { createServerFn } from "@tanstack/react-start";
 const getProfileFn = createServerFn({ method: "GET" })
   .validator((data: { username: string }) => data)
   .handler(async ({ data, context }) => {
-    const db = (context as any).cloudflare.env.DATABASE;
+    try {
+      const db = (context as any).cloudflare?.env?.DATABASE;
+      if (!db) {
+        console.error("Database not available");
+        return { user: null, posts: [], followersCount: 0, followingCount: 0, error: "Database not available" };
+      }
 
-    const user = await db
-      .prepare(
-        `SELECT id, username, avatar_url as avatarUrl, bio, created_at as createdAt
-         FROM users WHERE username = ?`
-      )
-      .bind(data.username)
-      .first();
+      const user = await db
+        .prepare(
+          `SELECT id, username, avatar_url as avatarUrl, bio, created_at as createdAt
+           FROM users WHERE username = ?`
+        )
+        .bind(data.username)
+        .first();
 
-    if (!user) {
-      return { user: null, posts: [], followersCount: 0, followingCount: 0 };
+      if (!user) {
+        return { user: null, posts: [], followersCount: 0, followingCount: 0 };
+      }
+
+      const userData = user as any;
+
+      const postsResult = await db
+        .prepare(
+          `SELECT
+            id, title, description, audio_url as audioUrl,
+            latitude, longitude, location, created_at as createdAt
+          FROM posts WHERE user_id = ? ORDER BY created_at DESC`
+        )
+        .bind(userData.id)
+        .all();
+
+      const followersCount = await db
+        .prepare("SELECT COUNT(*) as count FROM follows WHERE following_id = ?")
+        .bind(userData.id)
+        .first();
+
+      const followingCount = await db
+        .prepare("SELECT COUNT(*) as count FROM follows WHERE follower_id = ?")
+        .bind(userData.id)
+        .first();
+
+      const posts = postsResult?.results || [];
+
+      return {
+        user: {
+          ...userData,
+          createdAt: userData.createdAt ? new Date(userData.createdAt * 1000).toISOString() : new Date().toISOString(),
+        },
+        posts: posts.map((p: any) => ({
+          ...p,
+          createdAt: p.createdAt ? new Date(p.createdAt * 1000).toISOString() : new Date().toISOString(),
+        })),
+        followersCount: (followersCount as any)?.count || 0,
+        followingCount: (followingCount as any)?.count || 0,
+      };
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      return { user: null, posts: [], followersCount: 0, followingCount: 0, error: "Failed to fetch profile" };
     }
-
-    const postsResult = await db
-      .prepare(
-        `SELECT
-          id, title, description, audio_url as audioUrl,
-          latitude, longitude, location, created_at as createdAt
-        FROM posts WHERE user_id = ? ORDER BY created_at DESC`
-      )
-      .bind((user as any).id)
-      .all();
-
-    const followersCount = await db
-      .prepare("SELECT COUNT(*) as count FROM follows WHERE following_id = ?")
-      .bind((user as any).id)
-      .first();
-
-    const followingCount = await db
-      .prepare("SELECT COUNT(*) as count FROM follows WHERE follower_id = ?")
-      .bind((user as any).id)
-      .first();
-
-    return {
-      user: {
-        ...(user as any),
-        createdAt: new Date((user as any).createdAt * 1000).toISOString(),
-      },
-      posts: postsResult.results.map((p: any) => ({
-        ...p,
-        createdAt: new Date(p.createdAt * 1000).toISOString(),
-      })),
-      followersCount: (followersCount as any)?.count || 0,
-      followingCount: (followingCount as any)?.count || 0,
-    };
   });
 
 export const Route = createFileRoute("/profile/$username")({

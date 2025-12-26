@@ -10,42 +10,51 @@ const registerFn = createServerFn({ method: "POST" })
     (data: { email: string; username: string; password: string }) => data
   )
   .handler(async ({ data, context }) => {
-    const { email, username, password } = data;
-    const env = (context as any).cloudflare.env;
-    const db = env.DATABASE;
+    try {
+      const { email, username, password } = data;
+      const env = (context as any).cloudflare?.env;
+      if (!env?.DATABASE || !env?.SESSION_KV) {
+        console.error("Database or SESSION_KV not available");
+        return { error: "サーバーエラーが発生しました" };
+      }
+      const db = env.DATABASE;
 
-    // Check if user exists
-    const existingUser = await db
-      .prepare("SELECT id FROM users WHERE email = ? OR username = ?")
-      .bind(email, username)
-      .first();
+      // Check if user exists
+      const existingUser = await db
+        .prepare("SELECT id FROM users WHERE email = ? OR username = ?")
+        .bind(email, username)
+        .first();
 
-    if (existingUser) {
-      return {
-        error: "このメールアドレスまたはユーザー名は既に使用されています",
-      };
+      if (existingUser) {
+        return {
+          error: "このメールアドレスまたはユーザー名は既に使用されています",
+        };
+      }
+
+      // Create user
+      const passwordHash = await bcrypt.hash(password, 10);
+      const userId = generateId();
+      const now = getCurrentTimestamp();
+
+      await db
+        .prepare(
+          "INSERT INTO users (id, email, username, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
+        )
+        .bind(userId, email, username, passwordHash, now, now)
+        .run();
+
+      // Create session and set cookie after registration
+      await createAndSetSession(env.SESSION_KV, {
+        userId,
+        username,
+        email,
+      });
+
+      return { success: true, userId };
+    } catch (error) {
+      console.error("Error during registration:", error);
+      return { error: "登録中にエラーが発生しました" };
     }
-
-    // Create user
-    const passwordHash = await bcrypt.hash(password, 10);
-    const userId = generateId();
-    const now = getCurrentTimestamp();
-
-    await db
-      .prepare(
-        "INSERT INTO users (id, email, username, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
-      )
-      .bind(userId, email, username, passwordHash, now, now)
-      .run();
-
-    // Create session and set cookie after registration
-    await createAndSetSession(env.SESSION_KV, {
-      userId,
-      username,
-      email,
-    });
-
-    return { success: true, userId };
   });
 
 export const Route = createFileRoute("/register")({

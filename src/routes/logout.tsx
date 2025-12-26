@@ -4,12 +4,21 @@ import { deleteCurrentSession } from "~/utils/session";
 
 const logoutFn = createServerFn({ method: "POST" }).handler(
   async ({ context }) => {
-    const env = (context as any).cloudflare.env;
+    try {
+      const env = (context as any).cloudflare?.env;
+      if (!env?.SESSION_KV) {
+        console.error("SESSION_KV not available");
+        return { success: true }; // Still return success to allow logout
+      }
 
-    // Delete session from KV and clear cookie
-    await deleteCurrentSession(env.SESSION_KV);
+      // Delete session from KV and clear cookie
+      await deleteCurrentSession(env.SESSION_KV);
 
-    return { success: true };
+      return { success: true };
+    } catch (error) {
+      console.error("Error during logout:", error);
+      return { success: true }; // Still return success to allow logout
+    }
   }
 );
 

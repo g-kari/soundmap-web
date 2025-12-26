@@ -6,28 +6,37 @@ const MapComponent = lazy(() => import("~/components/Map"));
 
 const getMapPostsFn = createServerFn({ method: "GET" }).handler(
   async ({ context }) => {
-    const db = (context as any).cloudflare.env.DATABASE;
+    try {
+      const db = (context as any).cloudflare?.env?.DATABASE;
+      if (!db) {
+        console.error("Database not available");
+        return { posts: [], error: "Database not available" };
+      }
 
-    const postsResult = await db
-      .prepare(`
-        SELECT
-          p.id,
-          p.title,
-          p.description,
-          p.audio_url as audioUrl,
-          p.latitude,
-          p.longitude,
-          p.location,
-          u.username
-        FROM posts p
-        JOIN users u ON p.user_id = u.id
-        WHERE p.latitude IS NOT NULL AND p.longitude IS NOT NULL
-        ORDER BY p.created_at DESC
-        LIMIT 100
-      `)
-      .all();
+      const postsResult = await db
+        .prepare(`
+          SELECT
+            p.id,
+            p.title,
+            p.description,
+            p.audio_url as audioUrl,
+            p.latitude,
+            p.longitude,
+            p.location,
+            u.username
+          FROM posts p
+          JOIN users u ON p.user_id = u.id
+          WHERE p.latitude IS NOT NULL AND p.longitude IS NOT NULL
+          ORDER BY p.created_at DESC
+          LIMIT 100
+        `)
+        .all();
 
-    return { posts: postsResult.results };
+      return { posts: postsResult?.results || [] };
+    } catch (error) {
+      console.error("Error fetching map posts:", error);
+      return { posts: [], error: "Failed to fetch map posts" };
+    }
   }
 );
 
