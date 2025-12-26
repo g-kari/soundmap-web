@@ -9,6 +9,7 @@ import { generateId, getCurrentTimestamp } from "~/utils/db.server";
 import { getCurrentSession } from "~/utils/session";
 import { uploadAudioToR2, getR2PublicUrl } from "~/utils/upload";
 import { checkRateLimit, UPLOAD_RATE_LIMIT } from "~/utils/rate-limit";
+import { logger } from "~/utils/logger";
 
 const uploadAudioFn = createServerFn({ method: "POST" })
   .validator((formData: FormData) => formData)
@@ -47,7 +48,6 @@ const uploadAudioFn = createServerFn({ method: "POST" })
     // Validate file type
     const allowedTypes = [
       "audio/webm",
-      "audio/mp3",
       "audio/mpeg",
       "audio/wav",
       "audio/ogg",
@@ -69,7 +69,12 @@ const uploadAudioFn = createServerFn({ method: "POST" })
       const audioUrl = getR2PublicUrl(key);
       return { success: true, audioUrl, key };
     } catch (err) {
-      console.error("Upload error:", err);
+      logger.error("Upload error", {
+        error: err instanceof Error ? err.message : String(err),
+        fileName: audioFile.name,
+        fileSize: audioFile.size,
+        fileType: audioFile.type,
+      });
       return { error: "アップロードに失敗しました" };
     }
   });
