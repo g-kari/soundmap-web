@@ -4,11 +4,11 @@ import { useState } from "react";
 import bcrypt from "bcryptjs";
 import { createAndSetSession } from "~/utils/session";
 
-import { getEnv } from "~/utils/db.server";
+import { getEnvAsync } from "~/utils/db.server";
 
 const loginFn = createServerFn({ method: "POST" }).handler(async ({ data, context }: { data: { email: string; password: string }; context: any }) => {
     const { email, password } = data;
-    const env = getEnv(context);
+    const env = await getEnvAsync(context);
 
     if (!env.DATABASE) {
       // デバッグ: コンテキストの構造を確認
