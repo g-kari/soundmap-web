@@ -35,13 +35,25 @@ const getMapPostsFn = createServerFn({ method: "GET" }).handler(
       `)
       .all();
 
-    return { posts: postsResult.results };
+    // データ構造をMapコンポーネントの期待する形式に変換
+    const posts = postsResult.results.map((post: any) => ({
+      id: post.id,
+      title: post.title,
+      latitude: post.latitude,
+      longitude: post.longitude,
+      location: post.location,
+      user: {
+        username: post.username,
+      },
+    }));
+
+    return { posts };
   }
 );
 
 export const Route = createFileRoute("/map")({
-  loader: async () => {
-    return getMapPostsFn();
+  loader: async ({ context }) => {
+    return getMapPostsFn({ context });
   },
   component: MapPage,
 });
