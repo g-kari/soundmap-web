@@ -9,6 +9,12 @@ export function createRouter() {
   router = createTanStackRouter({
     routeTree,
     scrollRestoration: true,
+    defaultNotFoundComponent: () => (
+      <div style={{ padding: "2rem", textAlign: "center" }}>
+        <h1>404 - ページが見つかりません</h1>
+        <p>お探しのページは存在しません。</p>
+      </div>
+    ),
   });
 
   return router;
