@@ -6,7 +6,7 @@
 export type LogLevel = "error" | "warn" | "info" | "debug";
 
 export interface LogContext {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface Logger {
