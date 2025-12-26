@@ -1,9 +1,13 @@
 name = "soundmap-web"
+main = "build/client/_worker.js"
 compatibility_date = "2024-01-01"
-pages_build_output_dir = "./build/client"
+
+# Static assets configuration
+[assets]
+directory = "./build/client"
 
 # Custom domain: soundmap.0g0.xyz
-# Configure this in Cloudflare Dashboard → Pages → Custom domains
+# Configure this in Cloudflare Dashboard → Workers → Custom domains
 
 # D1 Database
 [[d1_databases]]
