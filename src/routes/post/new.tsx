@@ -28,7 +28,6 @@ const uploadAudioFn = createServerFn({ method: "POST" })
     // Validate file type
     const allowedTypes = [
       "audio/webm",
-      "audio/mp3",
       "audio/mpeg",
       "audio/wav",
       "audio/ogg",
