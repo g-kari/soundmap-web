@@ -1,44 +1,37 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { getEnvAsync } from "~/utils/db.server";
+import { desc } from "drizzle-orm";
+import { getEnvAsync, getDrizzle, schema } from "~/utils/db.server";
 
 const getTimelineFn = createServerFn({ method: "GET" }).handler(
   async ({ context }) => {
     const env = await getEnvAsync(context);
-    
+
     if (!env.DATABASE) {
       console.error("DATABASE binding is not available");
       return { posts: [] };
     }
-    
-    const db = env.DATABASE;
 
-    // Get posts from all users for now
-    const postsResult = await db
-      .prepare(`
-        SELECT
-          p.id,
-          p.user_id as userId,
-          p.title,
-          p.description,
-          p.audio_url as audioUrl,
-          p.latitude,
-          p.longitude,
-          p.location,
-          p.created_at as createdAt,
-          u.id as user_id,
-          u.username as user_username,
-          u.avatar_url as user_avatarUrl,
-          (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count,
-          (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comments_count
-        FROM posts p
-        JOIN users u ON p.user_id = u.id
-        ORDER BY p.created_at DESC
-        LIMIT 50
-      `)
-      .all();
+    const db = getDrizzle(env);
 
-    const posts = postsResult.results.map((p: any) => ({
+    // Get posts with user, likes, and comments using relational query
+    const postsResult = await db.query.posts.findMany({
+      with: {
+        user: {
+          columns: {
+            id: true,
+            username: true,
+            avatarUrl: true,
+          },
+        },
+        likes: true,
+        comments: true,
+      },
+      orderBy: [desc(schema.posts.createdAt)],
+      limit: 50,
+    });
+
+    const posts = postsResult.map((p) => ({
       id: p.id,
       userId: p.userId,
       title: p.title,
@@ -47,15 +40,15 @@ const getTimelineFn = createServerFn({ method: "GET" }).handler(
       latitude: p.latitude,
       longitude: p.longitude,
       location: p.location,
-      createdAt: new Date(p.createdAt * 1000).toISOString(),
+      createdAt: p.createdAt.toISOString(),
       user: {
-        id: p.user_id,
-        username: p.user_username,
-        avatarUrl: p.user_avatarUrl,
+        id: p.user.id,
+        username: p.user.username,
+        avatarUrl: p.user.avatarUrl,
       },
       _count: {
-        likes: p.likes_count || 0,
-        comments: p.comments_count || 0,
+        likes: p.likes.length,
+        comments: p.comments.length,
       },
     }));
 

@@ -2,9 +2,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import bcrypt from "bcryptjs";
+import { eq } from "drizzle-orm";
 import { createAndSetSession } from "~/utils/session";
-
-import { getEnvAsync } from "~/utils/db.server";
+import { getEnvAsync, getDrizzle, schema } from "~/utils/db.server";
 
 const loginFn = createServerFn({ method: "POST" }).handler(async ({ data, context }: { data: { email: string; password: string }; context: any }) => {
     const { email, password } = data;
@@ -13,21 +13,24 @@ const loginFn = createServerFn({ method: "POST" }).handler(async ({ data, contex
     if (!env.DATABASE) {
       return { error: "データベース接続が利用できません" };
     }
-    
-    const db = env.DATABASE;
 
-    const user = await db
-      .prepare(
-        "SELECT id, email, password_hash, username FROM users WHERE email = ?"
-      )
-      .bind(email)
-      .first();
+    const db = getDrizzle(env);
+
+    const user = await db.query.users.findFirst({
+      where: eq(schema.users.email, email),
+      columns: {
+        id: true,
+        email: true,
+        passwordHash: true,
+        username: true,
+      },
+    });
 
     if (!user) {
       return { error: "メールアドレスまたはパスワードが間違っています" };
     }
 
-    const isValid = await bcrypt.compare(password, user.password_hash);
+    const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
       return { error: "メールアドレスまたはパスワードが間違っています" };
     }

@@ -1,79 +1,72 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { getEnvAsync } from "~/utils/db.server";
+import { eq, desc } from "drizzle-orm";
+import { getEnvAsync, getDrizzle, schema } from "~/utils/db.server";
 
 const getPostFn = createServerFn({ method: "GET" }).handler(async ({ data, context }: { data: { postId: string }; context: any }) => {
     const env = await getEnvAsync(context);
-    
+
     if (!env.DATABASE) {
       console.error("DATABASE binding is not available");
-      return { post: null, comments: [] };
+      return { post: null, comments: [], likesCount: 0 };
     }
-    
-    const db = env.DATABASE;
 
-    const post = await db
-      .prepare(
-        `SELECT
-          p.id,
-          p.user_id as userId,
-          p.title,
-          p.description,
-          p.audio_url as audioUrl,
-          p.latitude,
-          p.longitude,
-          p.location,
-          p.created_at as createdAt,
-          u.id as user_id,
-          u.username as user_username,
-          u.avatar_url as user_avatarUrl
-        FROM posts p
-        JOIN users u ON p.user_id = u.id
-        WHERE p.id = ?`
-      )
-      .bind(data.postId)
-      .first();
+    const db = getDrizzle(env);
+
+    const post = await db.query.posts.findFirst({
+      where: eq(schema.posts.id, data.postId),
+      with: {
+        user: {
+          columns: {
+            id: true,
+            username: true,
+            avatarUrl: true,
+          },
+        },
+        likes: true,
+        comments: {
+          with: {
+            user: {
+              columns: {
+                username: true,
+                avatarUrl: true,
+              },
+            },
+          },
+          orderBy: [desc(schema.comments.createdAt)],
+        },
+      },
+    });
 
     if (!post) {
       return { post: null, comments: [], likesCount: 0 };
     }
 
-    const commentsResult = await db
-      .prepare(
-        `SELECT
-          c.id,
-          c.content,
-          c.created_at as createdAt,
-          u.username,
-          u.avatar_url as avatarUrl
-        FROM comments c
-        JOIN users u ON c.user_id = u.id
-        WHERE c.post_id = ?
-        ORDER BY c.created_at DESC`
-      )
-      .bind(data.postId)
-      .all();
-
-    const likesCount = await db
-      .prepare("SELECT COUNT(*) as count FROM likes WHERE post_id = ?")
-      .bind(data.postId)
-      .first();
-
     return {
       post: {
-        ...post,
-        createdAt: new Date((post as any).createdAt * 1000).toISOString(),
+        id: post.id,
+        userId: post.userId,
+        title: post.title,
+        description: post.description,
+        audioUrl: post.audioUrl,
+        latitude: post.latitude,
+        longitude: post.longitude,
+        location: post.location,
+        createdAt: post.createdAt.toISOString(),
         user: {
-          id: (post as any).user_id,
-          username: (post as any).user_username,
-          avatarUrl: (post as any).user_avatarUrl,
+          id: post.user.id,
+          username: post.user.username,
+          avatarUrl: post.user.avatarUrl,
         },
       },
-      comments: commentsResult.results.map((c: any) => ({
-        ...c,
-        createdAt: new Date(c.createdAt * 1000).toISOString(),
+      comments: post.comments.map((c) => ({
+        id: c.id,
+        content: c.content,
+        createdAt: c.createdAt.toISOString(),
+        username: c.user.username,
+        avatarUrl: c.user.avatarUrl,
       })),
-      likesCount: (likesCount as any)?.count || 0,
+      likesCount: post.likes.length,
     };
   });
 
