@@ -1,23 +1,8 @@
 import type { Env } from "../../load-context";
 
-// Cloudflare Workers の env 関数を動的にインポート
-// cloudflare:workers モジュールはサーバーサイドのみで利用可能
-let cloudflareEnvFn: (() => Env) | null = null;
-
-// サーバー起動時に cloudflare:workers から env を取得
-async function initCloudflareEnv() {
-  if (cloudflareEnvFn === null) {
-    try {
-      // @ts-ignore - cloudflare:workers はCloudflare Workers ランタイムでのみ利用可能
-      const cloudflareWorkers = await import("cloudflare:workers");
-      cloudflareEnvFn = cloudflareWorkers.env;
-    } catch {
-      // 開発環境や非Cloudflare環境ではインポートに失敗する
-      cloudflareEnvFn = undefined as any;
-    }
-  }
-  return cloudflareEnvFn;
-}
+// cloudflare:workers から env を直接インポート
+// @ts-ignore - cloudflare:workers はCloudflare Workers ランタイムでのみ利用可能
+import { env as cloudflareEnv } from "cloudflare:workers";
 
 // Helper function to generate UUID
 export function generateId(): string {
@@ -54,9 +39,9 @@ export function getEnv(context: any): Env {
     return context.cf.env;
   }
 
-  // パターン5: cloudflare:workers からの env 関数（同期呼び出しのため初期化済みの場合のみ）
-  if (typeof cloudflareEnvFn === "function") {
-    return cloudflareEnvFn();
+  // パターン5: cloudflare:workers からの env オブジェクト
+  if (cloudflareEnv?.DATABASE) {
+    return cloudflareEnv as unknown as Env;
   }
 
   // デバッグ用: コンテキストのキーをログ出力
@@ -75,11 +60,9 @@ export async function getEnvAsync(context: any): Promise<Env> {
     return envFromContext;
   }
 
-  // cloudflare:workers から取得を試みる
-  const envFn = await initCloudflareEnv();
-  if (typeof envFn === "function") {
-    cloudflareEnvFn = envFn; // キャッシュ
-    return envFn();
+  // cloudflare:workers からの env オブジェクトを試みる
+  if (cloudflareEnv?.DATABASE) {
+    return cloudflareEnv as unknown as Env;
   }
 
   return envFromContext;
