@@ -1,5 +1,7 @@
 # SoundMap - 音声SNSアプリ
 
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/g-kari/soundmap-web?utm_source=oss&utm_medium=github&utm_campaign=g-kari%2Fsoundmap-web&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
+
 位置情報と連動した音声SNSアプリケーション。ユーザーが各地点で録音した環境音や音楽を地図上で共有し、タイムラインでフォローしているユーザーの投稿を確認できます。
 
 ## 主な機能
